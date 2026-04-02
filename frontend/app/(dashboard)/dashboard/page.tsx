@@ -1,157 +1,234 @@
 "use client";
 
+import { useState, type ElementType } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Store,
+  UserPlus,
+  Users,
+  Package,
+  ClipboardList,
+  LayoutGrid,
+  Briefcase,
+  UserCog,
+  PackageOpen,
+  Wallet,
+  LogOut,
+  Leaf,
+  ChevronRight,
+} from "lucide-react";
 
-interface Card {
-  icon: React.ReactNode;
-  tag: string;
-  title: string;
+type CardItem = {
+  label: string;
+  sublabel: string;
+  icon: ElementType;
   description: string;
+  accent: string;
   href: string;
-}
-
-/* ── Ícones Corrigidos ── */
-function Icon({ children }: { children: React.ReactNode }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      {children}
-    </svg>
-  );
-}
-
-const icons = {
-  store: (
-    <Icon>
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <path d="M9 22V12h6v10" />
-    </Icon>
-  ),
-  userPlus: (
-    <Icon>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <line x1="19" y1="8" x2="19" y2="14" />
-      <line x1="22" y1="11" x2="16" y2="11" />
-    </Icon>
-  ),
-  users: (
-    <Icon>
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </Icon>
-  ),
-  box: (
-    <Icon>
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-    </Icon>
-  ),
-  clipboard: (
-    <Icon>
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-      <path d="M8 2h8a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" />
-    </Icon>
-  ),
-  grid: (
-    <Icon>
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </Icon>
-  ),
-  briefcase: (
-    <Icon>
-      <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </Icon>
-  ),
-  wallet: (
-    <Icon>
-      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4Z" />
-    </Icon>
-  ),
-  leaf: (
-    <Icon>
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-    </Icon>
-  ),
-  logout: (
-    <Icon>
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </Icon>
-  ),
-  chevron: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
-  ),
 };
 
-const cadastrarCards: Card[] = [
-  { icon: icons.store,     tag: "CADASTRAR", title: "Feira",        description: "Adicione novas feiras ao sistema",    href: "/feiras/nova" },
-  { icon: icons.userPlus,  tag: "CADASTRAR", title: "Comerciante",  description: "Registre novos comerciantes",         href: "/comerciantes/novo" },
-  { icon: icons.users,     tag: "CADASTRAR", title: "Cliente",      description: "Cadastre clientes na plataforma",     href: "/clientes/novo" },
-  { icon: icons.box,       tag: "CADASTRAR", title: "Itens",        description: "Insira produtos e itens",             href: "/itens/novo" },
-  { icon: icons.clipboard, tag: "VER",       title: "Pedidos",      description: "Acompanhe todos os pedidos",          href: "/pedidos" },
+const registerCards: CardItem[] = [
+  {
+    label: "Cadastrar",
+    sublabel: "Feira",
+    icon: Store,
+    description: "Adicione novas feiras ao sistema",
+    accent: "#003d04",
+    href: "/feiras/nova",
+  },
+  {
+    label: "Cadastrar",
+    sublabel: "Comerciante",
+    icon: UserPlus,
+    description: "Registre novos comerciantes",
+    accent: "#1b6112",
+    href: "/comerciantes/novo",
+  },
+  {
+    label: "Cadastrar",
+    sublabel: "Cliente",
+    icon: Users,
+    description: "Cadastre clientes na plataforma",
+    accent: "#2d7a1f",
+    href: "/clientes/novo",
+  },
+  {
+    label: "Cadastrar",
+    sublabel: "Itens",
+    icon: Package,
+    description: "Insira produtos e itens",
+    accent: "#3d9428",
+    href: "/itens/novo",
+  },
+  {
+    label: "Ver",
+    sublabel: "Pedidos",
+    icon: ClipboardList,
+    description: "Acompanhe todos os pedidos",
+    accent: "#5bc48b",
+    href: "/pedidos",
+  },
 ];
 
-const gerenciarCards: Card[] = [
-  { icon: icons.grid,      tag: "GERENCIAR", title: "Feira",        description: "Organize e edite as feiras",          href: "/feiras" },
-  { icon: icons.briefcase, tag: "GERENCIAR", title: "Comerciante",  description: "Gerencie os comerciantes",            href: "/comerciantes" },
-  { icon: icons.users,     tag: "GERENCIAR", title: "Cliente",      description: "Administre os clientes",              href: "/clientes" },
-  { icon: icons.box,       tag: "GERENCIAR", title: "Itens",        description: "Edite o catálogo de produtos",        href: "/itens" },
-  { icon: icons.wallet,    tag: "VER",       title: "Pagamentos",   description: "Controle financeiro e transações",    href: "/pagamentos" },
+const manageCards: CardItem[] = [
+  {
+    label: "Gerenciar",
+    sublabel: "Feira",
+    icon: LayoutGrid,
+    description: "Organize e edite as feiras",
+    accent: "#003d04",
+    href: "/feiras",
+  },
+  {
+    label: "Gerenciar",
+    sublabel: "Comerciante",
+    icon: Briefcase,
+    description: "Gerencie os comerciantes",
+    accent: "#1b6112",
+    href: "/comerciantes",
+  },
+  {
+    label: "Gerenciar",
+    sublabel: "Cliente",
+    icon: UserCog,
+    description: "Administre os clientes",
+    accent: "#2d7a1f",
+    href: "/clientes",
+  },
+  {
+    label: "Gerenciar",
+    sublabel: "Itens",
+    icon: PackageOpen,
+    description: "Edite o catálogo de produtos",
+    accent: "#3d9428",
+    href: "/itens",
+  },
+  {
+    label: "Ver",
+    sublabel: "Pagamentos",
+    icon: Wallet,
+    description: "Controle financeiro e transações",
+    accent: "#5bc48b",
+    href: "/pagamentos",
+  },
 ];
 
-function DashboardCard({ card }: { card: Card }) {
+function ActionCard({ card, index }: { card: CardItem; index: number }) {
+  const [hovered, setHovered] = useState(false);
   const router = useRouter();
+  const Icon = card.icon;
+
   return (
     <button
       onClick={() => router.push(card.href)}
-      className="relative bg-white border border-[#edf3f0] shadow-sm rounded-[20px] p-4 text-left flex flex-col overflow-hidden transition-all hover:shadow-md hover:-translate-y-1 hover:border-[#a7d4b8] active:scale-95 cursor-pointer h-full"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative flex flex-col items-start text-left rounded-2xl p-5 md:p-6 cursor-pointer overflow-hidden transition-all duration-300 w-full"
+      style={{
+        background: hovered
+          ? `linear-gradient(135deg, ${card.accent} 0%, #5bc48b 100%)`
+          : "white",
+        boxShadow: hovered
+          ? `0 20px 40px rgba(0,61,4,0.2), 0 0 0 1px ${card.accent}22`
+          : "0 2px 12px rgba(0,61,4,0.07), 0 0 0 1px rgba(0,61,4,0.06)",
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
+        animationDelay: `${index * 60}ms`,
+      }}
     >
-      {/* Círculos decorativos (ligeiramente menores) */}
-      <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-[#f4fbf7] pointer-events-none" />
-      <div className="absolute -bottom-6 -right-6 w-16 h-16 rounded-full bg-[#f4fbf7] pointer-events-none" />
+      {/* Círculos decorativos */}
+      <div
+        className="absolute -top-6 -right-6 w-20 h-20 rounded-full transition-all duration-300 pointer-events-none"
+        style={{ background: hovered ? "rgba(255,255,255,0.12)" : `${card.accent}10` }}
+      />
+      <div
+        className="absolute -bottom-4 -right-4 w-12 h-12 rounded-full transition-all duration-300 pointer-events-none"
+        style={{ background: hovered ? "rgba(255,255,255,0.08)" : `${card.accent}08` }}
+      />
 
-      {/* Ícone principal (Tamanho reduzido e menos margem) */}
-      <div className="w-11 h-11 bg-[#f4fbf7] rounded-[14px] flex items-center justify-center text-[#358359] mb-3 z-10 shrink-0">
-        {card.icon}
+      {/* Ícone */}
+      <div
+        className="relative z-10 flex items-center justify-center w-11 h-11 rounded-xl mb-3 transition-all duration-300"
+        style={{ background: hovered ? "rgba(255,255,255,0.2)" : `${card.accent}12` }}
+      >
+        <Icon
+          size={20}
+          style={{ color: hovered ? "white" : card.accent }}
+          className="transition-colors duration-300"
+        />
       </div>
 
-      <span className="text-[10px] font-bold tracking-wider text-[#8fa898] uppercase z-10 mb-0.5">
-        {card.tag}
-      </span>
-      <h3 className="text-base font-bold text-[#1f3025] leading-tight z-10 mb-1">
-        {card.title}
-      </h3>
-      <p className="text-xs text-[#9aa9a1] leading-relaxed flex-1 z-10">
-        {card.description}
-      </p>
+      {/* Texto */}
+      <div className="relative z-10 flex-1">
+        <p
+          className="text-[10px] mb-0.5 font-medium tracking-widest uppercase transition-colors duration-300"
+          style={{ color: hovered ? "rgba(255,255,255,0.75)" : "#7aaa80" }}
+        >
+          {card.label}
+        </p>
+        <p
+          className="font-bold text-base leading-tight mb-1.5 transition-colors duration-300"
+          style={{ color: hovered ? "white" : "#1a3d1f" }}
+        >
+          {card.sublabel}
+        </p>
+        <p
+          className="text-xs leading-relaxed transition-colors duration-300"
+          style={{ color: hovered ? "rgba(255,255,255,0.65)" : "#8aaa8d" }}
+        >
+          {card.description}
+        </p>
+      </div>
 
-      {/* Seta no canto inferior direito */}
-      <div className="self-end mt-2 w-7 h-7 rounded-full bg-[#f4fbf7] flex items-center justify-center text-[#358359] z-10 shrink-0">
-        {icons.chevron}
+      {/* Seta */}
+      <div className="relative z-10 mt-3 self-end">
+        <div
+          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300"
+          style={{ background: hovered ? "rgba(255,255,255,0.2)" : `${card.accent}10` }}
+        >
+          <ChevronRight
+            size={14}
+            style={{ color: hovered ? "white" : card.accent }}
+            className="transition-colors duration-300"
+          />
+        </div>
       </div>
     </button>
   );
 }
 
-function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
+function SectionHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  gradient,
+}: {
+  icon: ElementType;
+  title: string;
+  subtitle: string;
+  gradient: string;
+}) {
   return (
-    <div className="flex items-center gap-3 mb-6 pb-3 border-b border-[#d1e8d8]">
-      <div className="w-10 h-10 rounded-xl bg-[#1a4731] flex items-center justify-center text-white shrink-0">
-        {icon}
+    <div className="flex items-center gap-3 mb-4">
+      <div
+        className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+        style={{ background: gradient }}
+      >
+        <Icon size={15} className="text-white" />
       </div>
       <div>
-        <h2 className="text-lg font-bold text-[#1a4731] leading-tight">{title}</h2>
-        <p className="text-xs text-gray-500">{subtitle}</p>
+        <h2
+          className="text-[#1a3d1f] leading-tight"
+          style={{ fontWeight: 700, fontSize: "1.05rem", letterSpacing: "-0.01em" }}
+        >
+          {title}
+        </h2>
+        <p className="text-[#8aaa8d] text-xs">{subtitle}</p>
       </div>
+      <div
+        className="flex-1 h-px ml-2"
+        style={{ background: "linear-gradient(to right, #c8deca, transparent)" }}
+      />
     </div>
   );
 }
@@ -166,65 +243,114 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0faf4] overflow-x-hidden" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div
+      className="min-h-screen w-full flex flex-col"
+      style={{ background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)" }}
+    >
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-[#1a4731] to-[#2d7a4f] flex items-center justify-between px-4 md:px-8 h-14 md:h-16">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white">
-            {icons.leaf}
+      <header
+        className="w-full flex items-center justify-between px-4 md:px-8 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
+          minHeight: "64px",
+          boxShadow: "0 4px 24px rgba(0,61,4,0.25)",
+        }}
+      >
+        {/* Círculos decorativos */}
+        <div className="absolute -left-10 -top-10 w-40 h-40 rounded-full opacity-10 bg-[#5bc48b] pointer-events-none" />
+        <div className="absolute right-40 -bottom-12 w-36 h-36 rounded-full opacity-10 bg-[#5bc48b] pointer-events-none" />
+
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 relative z-10">
+          <div
+            className="flex items-center justify-center rounded-xl p-2"
+            style={{ background: "rgba(255,255,255,0.15)" }}
+          >
+            <Leaf size={20} className="text-white" />
           </div>
-          <span className="text-white font-bold text-base md:text-lg">EcoFeira</span>
+          <span
+            className="text-white leading-none"
+            style={{ fontWeight: 700, fontSize: "1.1rem", letterSpacing: "-0.02em" }}
+          >
+            EcoFeira
+          </span>
         </div>
 
-        <span className="hidden md:flex items-center gap-1.5 text-white/70 text-sm">
+        {/* Centro — só desktop */}
+        <span className="hidden md:flex items-center gap-1.5 text-white/60 text-sm relative z-10">
           Sistema Ecofeira Protótipo
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
         </span>
 
-        <div className="flex items-center gap-2 md:gap-3">
+        {/* Direita */}
+        <div className="flex items-center gap-2 md:gap-3 relative z-10">
           {username && (
             <span className="hidden sm:block text-white/70 text-xs">{username}</span>
           )}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white text-xs md:text-sm font-medium px-3 py-1.5 md:px-4 md:py-2 transition"
+            className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-xl transition-all duration-200 text-white/85 hover:text-white"
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)";
+            }}
           >
-            {icons.logout}
+            <LogOut size={15} />
             <span>Sair</span>
           </button>
         </div>
       </header>
 
-      {/* Conteúdo */}
-      <main className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 flex flex-col gap-12">
-        {/* Seção Cadastrar */}
+      {/* Conteúdo principal */}
+      <main className="flex-1 px-4 md:px-6 py-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
+
+        {/* Cadastrar */}
         <section>
           <SectionHeader
-            icon={icons.userPlus}
+            icon={UserPlus}
             title="Cadastrar"
             subtitle="Adicione novos registros ao sistema"
+            gradient="linear-gradient(135deg, #003d04, #1b6112)"
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-            {cadastrarCards.map((card) => (
-              <DashboardCard key={card.title + card.tag} card={card} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+            {registerCards.map((card, i) => (
+              <ActionCard key={card.sublabel} card={card} index={i} />
             ))}
           </div>
         </section>
 
-        {/* Seção Gerenciar */}
+        {/* Gerenciar */}
         <section>
           <SectionHeader
-            icon={icons.grid}
+            icon={LayoutGrid}
             title="Gerenciar"
             subtitle="Edite e administre os dados existentes"
+            gradient="linear-gradient(135deg, #1b6112, #3d9428)"
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-            {gerenciarCards.map((card) => (
-              <DashboardCard key={card.title + card.tag} card={card} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+            {manageCards.map((card, i) => (
+              <ActionCard key={card.sublabel + "-manage"} card={card} index={i} />
             ))}
           </div>
         </section>
+
       </main>
+
+      {/* Footer */}
+      <footer className="px-4 md:px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Leaf size={13} className="text-[#5bc48b]" />
+          <p className="text-[#9db89f] text-xs">© 2026 EcoFeira · Associação Agroecológica</p>
+        </div>
+        <p className="text-[#b8ceba] text-[0.7rem] hidden sm:block">Todos os direitos reservados</p>
+      </footer>
     </div>
   );
 }

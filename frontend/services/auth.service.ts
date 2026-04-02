@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
 export interface LoginRequest {
   username: string;
   password: string;
@@ -9,18 +7,25 @@ export interface LoginResponse {
   token: string;
   username: string;
 }
+// USA MOCK DE LOGIN PARA FACILITAR OS TESTES
+// TODO: Implementar integração real com backend usando o endpoint de login da API RESTful.
+const MOCK_USERS = [
+  { username: "admin", password: "123456" },
+  { username: "gerenciador", password: "123456" },
+];
 
 export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  // Simula delay de rede
+  await new Promise((res) => setTimeout(res, 600));
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || "Usuário ou senha inválidos");
-  }
+  const user = MOCK_USERS.find(
+    (u) => u.username === data.username && u.password === data.password
+  );
 
-  return response.json();
+  if (!user) throw new Error("Usuário ou senha inválidos");
+
+  return {
+    token: "mock-token-dev",
+    username: user.username,
+  };
 }

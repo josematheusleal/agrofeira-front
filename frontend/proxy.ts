@@ -1,23 +1,10 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
-  const token = request.cookies.get("ecofeira_token")?.value;
-  const { pathname } = request.nextUrl;
-
-  const isAuthPage = pathname.startsWith("/login");
-
-  if (!token && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
+export function proxy() {
   return NextResponse.next();
 }
-
+// DESATIVA TEMPORARIAMENTE PROTEÇÃO DAS ROTAS
+// TODO: Implementar proteção de rotas usando o token JWT armazenado no localStorage do navegador.
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|public).*)"],
+  matcher: [],
 };

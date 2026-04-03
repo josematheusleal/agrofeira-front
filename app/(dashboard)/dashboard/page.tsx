@@ -139,17 +139,23 @@ function ActionCard({ card, index }: { card: CardItem; index: number }) {
       {/* Círculos decorativos */}
       <div
         className="absolute -top-6 -right-6 w-20 h-20 rounded-full transition-all duration-300 pointer-events-none"
-        style={{ background: hovered ? "rgba(255,255,255,0.12)" : `${card.accent}10` }}
+        style={{
+          background: hovered ? "rgba(255,255,255,0.12)" : `${card.accent}10`,
+        }}
       />
       <div
         className="absolute -bottom-4 -right-4 w-12 h-12 rounded-full transition-all duration-300 pointer-events-none"
-        style={{ background: hovered ? "rgba(255,255,255,0.08)" : `${card.accent}08` }}
+        style={{
+          background: hovered ? "rgba(255,255,255,0.08)" : `${card.accent}08`,
+        }}
       />
 
       {/* Ícone */}
       <div
         className="relative z-10 flex items-center justify-center w-11 h-11 rounded-xl mb-3 transition-all duration-300"
-        style={{ background: hovered ? "rgba(255,255,255,0.2)" : `${card.accent}12` }}
+        style={{
+          background: hovered ? "rgba(255,255,255,0.2)" : `${card.accent}12`,
+        }}
       >
         <Icon
           size={20}
@@ -184,7 +190,9 @@ function ActionCard({ card, index }: { card: CardItem; index: number }) {
       <div className="relative z-10 mt-3 self-end">
         <div
           className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300"
-          style={{ background: hovered ? "rgba(255,255,255,0.2)" : `${card.accent}10` }}
+          style={{
+            background: hovered ? "rgba(255,255,255,0.2)" : `${card.accent}10`,
+          }}
         >
           <ChevronRight
             size={14}
@@ -219,7 +227,11 @@ function SectionHeader({
       <div>
         <h2
           className="text-[#1a3d1f] leading-tight"
-          style={{ fontWeight: 700, fontSize: "1.05rem", letterSpacing: "-0.01em" }}
+          style={{
+            fontWeight: 700,
+            fontSize: "1.05rem",
+            letterSpacing: "-0.01em",
+          }}
         >
           {title}
         </h2>
@@ -227,7 +239,9 @@ function SectionHeader({
       </div>
       <div
         className="flex-1 h-px ml-2"
-        style={{ background: "linear-gradient(to right, #c8deca, transparent)" }}
+        style={{
+          background: "linear-gradient(to right, #c8deca, transparent)",
+        }}
       />
     </div>
   );
@@ -245,13 +259,16 @@ export default function DashboardPage() {
   return (
     <div
       className="min-h-screen w-full flex flex-col"
-      style={{ background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)" }}
+      style={{
+        background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)",
+      }}
     >
       {/* Header */}
       <header
         className="w-full flex items-center justify-between px-4 md:px-8 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
+          background:
+            "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
           minHeight: "64px",
           boxShadow: "0 4px 24px rgba(0,61,4,0.25)",
         }}
@@ -270,7 +287,11 @@ export default function DashboardPage() {
           </div>
           <span
             className="text-white leading-none"
-            style={{ fontWeight: 700, fontSize: "1.1rem", letterSpacing: "-0.02em" }}
+            style={{
+              fontWeight: 700,
+              fontSize: "1.1rem",
+              letterSpacing: "-0.02em",
+            }}
           >
             EcoFeira
           </span>
@@ -279,7 +300,9 @@ export default function DashboardPage() {
         {/* Direita */}
         <div className="flex items-center gap-2 md:gap-3 relative z-10">
           {username && (
-            <span className="hidden sm:block text-white/70 text-xs">{username}</span>
+            <span className="hidden sm:block text-white/70 text-xs">
+              {username}
+            </span>
           )}
           <button
             onClick={handleLogout}
@@ -291,10 +314,12 @@ export default function DashboardPage() {
               fontSize: "0.875rem",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.2)";
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "rgba(255,255,255,0.2)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)";
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "rgba(255,255,255,0.1)";
             }}
           >
             <LogOut size={15} />
@@ -305,7 +330,6 @@ export default function DashboardPage() {
 
       {/* Conteúdo principal */}
       <main className="flex-1 px-4 md:px-6 py-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
-
         {/* Cadastrar */}
         <section>
           <SectionHeader
@@ -331,20 +355,27 @@ export default function DashboardPage() {
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
             {manageCards.map((card, i) => (
-              <ActionCard key={card.sublabel + "-manage"} card={card} index={i} />
+              <ActionCard
+                key={card.sublabel + "-manage"}
+                card={card}
+                index={i}
+              />
             ))}
           </div>
         </section>
-
       </main>
 
       {/* Footer */}
       <footer className="px-4 md:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Leaf size={13} className="text-[#5bc48b]" />
-          <p className="text-[#9db89f] text-xs">© 2026 EcoFeira · Associação Agroecológica</p>
+          <p className="text-[#9db89f] text-xs">
+            © 2026 EcoFeira · Associação Agroecológica
+          </p>
         </div>
-        <p className="text-[#b8ceba] text-[0.7rem] hidden sm:block">Todos os direitos reservados</p>
+        <p className="text-[#b8ceba] text-[0.7rem] hidden sm:block">
+          Todos os direitos reservados
+        </p>
       </footer>
     </div>
   );

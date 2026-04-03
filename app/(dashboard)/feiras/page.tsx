@@ -103,8 +103,8 @@ function FeiraDropdown({
   const placeholder = loading
     ? "Carregando feiras..."
     : error
-    ? "Erro ao carregar feiras"
-    : "Selecione a Feira";
+      ? "Erro ao carregar feiras"
+      : "Selecione a Feira";
 
   return (
     <div className="relative" ref={ref}>
@@ -154,12 +154,17 @@ function FeiraDropdown({
             return (
               <button
                 key={feira.id}
-                onClick={() => { onSelect(feira); setOpen(false); }}
+                onClick={() => {
+                  onSelect(feira);
+                  setOpen(false);
+                }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-150"
                 style={{
                   background: isSelected
                     ? "linear-gradient(135deg, rgba(0,61,4,0.07), rgba(91,196,139,0.1))"
-                    : i % 2 === 0 ? "#fafcf9" : "white",
+                    : i % 2 === 0
+                      ? "#fafcf9"
+                      : "white",
                   borderBottom:
                     i < feiras.length - 1 ? "1px solid #eef5ee" : "none",
                 }}
@@ -234,7 +239,10 @@ function FeiraDropdown({
       {open && feiras.length === 0 && !loading && (
         <div
           className="absolute left-0 right-0 mt-2 rounded-xl px-4 py-6 text-center z-50"
-          style={{ background: "white", boxShadow: "0 8px 32px rgba(0,61,4,0.15)" }}
+          style={{
+            background: "white",
+            boxShadow: "0 8px 32px rgba(0,61,4,0.15)",
+          }}
         >
           <p className="text-[#8aaa8d] text-sm">Nenhuma feira cadastrada</p>
         </div>
@@ -273,13 +281,13 @@ function OptionCard({
         background: active
           ? `linear-gradient(135deg, ${option.accent} 0%, #5bc48b 100%)`
           : disabled
-          ? "#f8f9f8"
-          : "white",
+            ? "#f8f9f8"
+            : "white",
         boxShadow: active
           ? `0 20px 40px rgba(0,61,4,0.22), 0 0 0 1px ${option.accent}22`
           : disabled
-          ? "0 1px 4px rgba(0,61,4,0.04)"
-          : "0 2px 16px rgba(0,61,4,0.08), 0 0 0 1px rgba(0,61,4,0.06)",
+            ? "0 1px 4px rgba(0,61,4,0.04)"
+            : "0 2px 16px rgba(0,61,4,0.08), 0 0 0 1px rgba(0,61,4,0.06)",
         transform: active ? "translateY(-5px)" : "translateY(0)",
         cursor: disabled ? "not-allowed" : option.href ? "pointer" : "default",
         opacity: disabled ? 0.45 : 1,
@@ -288,17 +296,23 @@ function OptionCard({
       {/* Círculos decorativos */}
       <div
         className="absolute -top-6 -right-6 w-20 h-20 rounded-full transition-all duration-300 pointer-events-none"
-        style={{ background: active ? "rgba(255,255,255,0.12)" : `${option.accent}10` }}
+        style={{
+          background: active ? "rgba(255,255,255,0.12)" : `${option.accent}10`,
+        }}
       />
       <div
         className="absolute -bottom-4 -right-4 w-12 h-12 rounded-full transition-all duration-300 pointer-events-none"
-        style={{ background: active ? "rgba(255,255,255,0.07)" : `${option.accent}08` }}
+        style={{
+          background: active ? "rgba(255,255,255,0.07)" : `${option.accent}08`,
+        }}
       />
 
       {/* Ícone */}
       <div
         className="relative z-10 flex items-center justify-center w-11 h-11 rounded-xl mb-3 transition-all duration-300"
-        style={{ background: active ? "rgba(255,255,255,0.2)" : `${option.accent}12` }}
+        style={{
+          background: active ? "rgba(255,255,255,0.2)" : `${option.accent}12`,
+        }}
       >
         <option.icon
           size={22}
@@ -337,7 +351,9 @@ function OptionCard({
           <div
             className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300"
             style={{
-              background: active ? "rgba(255,255,255,0.2)" : `${option.accent}10`,
+              background: active
+                ? "rgba(255,255,255,0.2)"
+                : `${option.accent}10`,
             }}
           >
             <ChevronRight
@@ -386,13 +402,16 @@ export default function GerenciarFeiraPage() {
   return (
     <div
       className="min-h-screen w-full flex flex-col"
-      style={{ background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)" }}
+      style={{
+        background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)",
+      }}
     >
       {/* Header */}
       <header
         className="w-full flex items-center justify-between px-4 md:px-8 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
+          background:
+            "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
           minHeight: "64px",
           boxShadow: "0 4px 24px rgba(0,61,4,0.25)",
         }}
@@ -437,10 +456,12 @@ export default function GerenciarFeiraPage() {
               fontSize: "0.875rem",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.2)";
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "rgba(255,255,255,0.2)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)";
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "rgba(255,255,255,0.1)";
             }}
           >
             <LogOut size={15} />
@@ -451,7 +472,6 @@ export default function GerenciarFeiraPage() {
 
       {/* Corpo */}
       <main className="flex-1 px-4 md:px-6 py-6 max-w-4xl w-full mx-auto flex flex-col gap-6">
-
         {/* Voltar + título */}
         <div className="flex items-center gap-4">
           <button
@@ -463,7 +483,8 @@ export default function GerenciarFeiraPage() {
               border: "1px solid rgba(0,61,4,0.1)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "#f0faf3";
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "#f0faf3";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = "white";
@@ -474,7 +495,11 @@ export default function GerenciarFeiraPage() {
           <div>
             <h1
               className="text-[#1a3d1f] leading-tight"
-              style={{ fontWeight: 700, fontSize: "1.35rem", letterSpacing: "-0.02em" }}
+              style={{
+                fontWeight: 700,
+                fontSize: "1.35rem",
+                letterSpacing: "-0.02em",
+              }}
             >
               Gerenciar Feira
             </h1>
@@ -489,20 +514,27 @@ export default function GerenciarFeiraPage() {
           className="rounded-2xl p-5 md:p-6"
           style={{
             background: "white",
-            boxShadow: "0 2px 16px rgba(0,61,4,0.07), 0 0 0 1px rgba(0,61,4,0.06)",
+            boxShadow:
+              "0 2px 16px rgba(0,61,4,0.07), 0 0 0 1px rgba(0,61,4,0.06)",
           }}
         >
           <div className="flex items-center gap-3 mb-5">
             <div
               className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
-              style={{ background: "linear-gradient(135deg, #003d04, #1b6112)" }}
+              style={{
+                background: "linear-gradient(135deg, #003d04, #1b6112)",
+              }}
             >
               <CalendarDays size={17} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <h3
                 className="text-[#1a3d1f]"
-                style={{ fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.01em" }}
+                style={{
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  letterSpacing: "-0.01em",
+                }}
               >
                 Feira
               </h3>
@@ -514,7 +546,8 @@ export default function GerenciarFeiraPage() {
               <div
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full shrink-0"
                 style={{
-                  background: "linear-gradient(135deg, rgba(0,61,4,0.07), rgba(91,196,139,0.12))",
+                  background:
+                    "linear-gradient(135deg, rgba(0,61,4,0.07), rgba(91,196,139,0.12))",
                   border: "1.5px solid rgba(91,196,139,0.3)",
                 }}
               >
@@ -540,18 +573,20 @@ export default function GerenciarFeiraPage() {
           <div className="flex items-center gap-3 mb-5">
             <div
               className="h-px flex-1"
-              style={{ background: "linear-gradient(to right, #c8deca, transparent)" }}
+              style={{
+                background: "linear-gradient(to right, #c8deca, transparent)",
+              }}
             />
-            <p
-              className="text-[#8aaa8d] px-3 text-[0.72rem] font-semibold tracking-widest uppercase"
-            >
+            <p className="text-[#8aaa8d] px-3 text-[0.72rem] font-semibold tracking-widest uppercase">
               {feiraSelected
                 ? "O que deseja fazer?"
                 : "Selecione uma feira para continuar"}
             </p>
             <div
               className="h-px flex-1"
-              style={{ background: "linear-gradient(to left, #c8deca, transparent)" }}
+              style={{
+                background: "linear-gradient(to left, #c8deca, transparent)",
+              }}
             />
           </div>
 

@@ -19,7 +19,7 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
   await new Promise((res) => setTimeout(res, 600));
 
   const user = MOCK_USERS.find(
-    (u) => u.username === data.username && u.password === data.password
+    (u) => u.username === data.username && u.password === data.password,
   );
 
   if (!user) throw new Error("Usuário ou senha inválidos");

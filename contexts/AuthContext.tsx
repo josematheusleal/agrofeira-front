@@ -43,7 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, username, login, logout, isAuthenticated: !!token, isInitialized }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        username,
+        login,
+        logout,
+        isAuthenticated: !!token,
+        isInitialized,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -51,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  if (!context)
+    throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
 }

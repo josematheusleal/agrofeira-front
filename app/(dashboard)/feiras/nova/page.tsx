@@ -38,6 +38,76 @@ function defaultDateTime() {
 /* ── TransferList genérico ───────────────────────────────── */
 type TransferItem = { id: string; label: string };
 
+type PanelProps = {
+  items: TransferItem[];
+  selected: string[];
+  onSelect: (id: string) => void;
+  gradient: string;
+  loading?: boolean;
+};
+
+function Panel({
+  items,
+  selected,
+  onSelect,
+  gradient,
+  loading,
+}: PanelProps) {
+  return (
+    <div
+      className="flex-1 rounded-xl p-2 overflow-y-auto"
+      style={{
+        minHeight: "160px",
+        maxHeight: "200px",
+        background: "linear-gradient(135deg, #f6faf4 0%, #edf5eb 100%)",
+        border: "1.5px solid #daeeda",
+      }}
+    >
+      {loading ? (
+        <div className="flex items-center justify-center h-full gap-2">
+          <Loader2 size={16} className="text-[#5bc48b] animate-spin" />
+          <p className="text-[#aacaad] text-xs">Carregando...</p>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-full gap-2 py-6">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(91,196,139,0.15)" }}>
+            <Check size={14} className="text-[#5bc48b]" />
+          </div>
+          <p className="text-[#aacaad] text-xs">Nenhum item</p>
+        </div>
+      ) : (
+        items.map((item) => {
+          const isSel = selected.includes(item.id);
+          return (
+            <button
+              key={item.id}
+              onClick={() => onSelect(item.id)}
+              className="w-full text-left px-3 py-2 rounded-lg mb-1 transition-all duration-150 flex items-center gap-2"
+              style={{
+                background: isSel ? gradient : "white",
+                boxShadow: isSel ? "0 2px 8px rgba(0,61,4,0.2)" : "0 1px 3px rgba(0,61,4,0.06)",
+              }}
+            >
+              <div
+                className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all duration-150"
+                style={{
+                  background: isSel ? "rgba(255,255,255,0.2)" : "rgba(91,196,139,0.15)",
+                  border: isSel ? "none" : "1.5px solid #5bc48b",
+                }}
+              >
+                {isSel && <Check size={10} className="text-white" />}
+              </div>
+              <span className="text-xs font-medium truncate" style={{ color: isSel ? "white" : "#1a3d1f" }}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 type TransferListProps = {
   icon: ElementType;
   title: string;
@@ -73,72 +143,6 @@ function TransferList({
   onMoveAllToRight,
   loading,
 }: TransferListProps) {
-  function Panel({
-    items,
-    selected,
-    onSelect,
-    gradient,
-  }: {
-    items: TransferItem[];
-    selected: string[];
-    onSelect: (id: string) => void;
-    gradient: string;
-  }) {
-    return (
-      <div
-        className="flex-1 rounded-xl p-2 overflow-y-auto"
-        style={{
-          minHeight: "160px",
-          maxHeight: "200px",
-          background: "linear-gradient(135deg, #f6faf4 0%, #edf5eb 100%)",
-          border: "1.5px solid #daeeda",
-        }}
-      >
-        {loading ? (
-          <div className="flex items-center justify-center h-full gap-2">
-            <Loader2 size={16} className="text-[#5bc48b] animate-spin" />
-            <p className="text-[#aacaad] text-xs">Carregando...</p>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 py-6">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(91,196,139,0.15)" }}>
-              <Check size={14} className="text-[#5bc48b]" />
-            </div>
-            <p className="text-[#aacaad] text-xs">Nenhum item</p>
-          </div>
-        ) : (
-          items.map((item) => {
-            const isSel = selected.includes(item.id);
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelect(item.id)}
-                className="w-full text-left px-3 py-2 rounded-lg mb-1 transition-all duration-150 flex items-center gap-2"
-                style={{
-                  background: isSel ? gradient : "white",
-                  boxShadow: isSel ? "0 2px 8px rgba(0,61,4,0.2)" : "0 1px 3px rgba(0,61,4,0.06)",
-                }}
-              >
-                <div
-                  className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all duration-150"
-                  style={{
-                    background: isSel ? "rgba(255,255,255,0.2)" : "rgba(91,196,139,0.15)",
-                    border: isSel ? "none" : "1.5px solid #5bc48b",
-                  }}
-                >
-                  {isSel && <Check size={10} className="text-white" />}
-                </div>
-                <span className="text-xs font-medium truncate" style={{ color: isSel ? "white" : "#1a3d1f" }}>
-                  {item.label}
-                </span>
-              </button>
-            );
-          })
-        )}
-      </div>
-    );
-  }
-
   const btnBase = "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200";
   const btnSolid = { background: "linear-gradient(135deg, #003d04, #1b6112)", boxShadow: "0 2px 8px rgba(0,61,4,0.25)" };
   const btnOutline = { background: "rgba(0,61,4,0.12)", border: "1.5px solid rgba(0,61,4,0.2)" };
@@ -162,7 +166,7 @@ function TransferList({
             <span className="text-[#5bc48b] text-[0.75rem] font-semibold tracking-wider uppercase">{leftLabel}</span>
             <span className="px-2 py-0.5 rounded-full text-[#5bc48b] text-[0.65rem] font-semibold" style={{ background: "rgba(91,196,139,0.12)" }}>{leftItems.length}</span>
           </div>
-          <Panel items={leftItems} selected={leftSelected} onSelect={onLeftSelect} gradient="linear-gradient(135deg, #003d04, #1b6112)" />
+          <Panel items={leftItems} selected={leftSelected} onSelect={onLeftSelect} gradient="linear-gradient(135deg, #003d04, #1b6112)" loading={loading} />
         </div>
 
         {/* Botões de transferência */}
@@ -195,7 +199,7 @@ function TransferList({
             <span className="text-[#5bc48b] text-[0.75rem] font-semibold tracking-wider uppercase">{rightLabel}</span>
             <span className="px-2 py-0.5 rounded-full text-[#5bc48b] text-[0.65rem] font-semibold" style={{ background: "rgba(91,196,139,0.12)" }}>{rightItems.length}</span>
           </div>
-          <Panel items={rightItems} selected={rightSelected} onSelect={onRightSelect} gradient="linear-gradient(135deg, #1b6112, #3d9428)" />
+          <Panel items={rightItems} selected={rightSelected} onSelect={onRightSelect} gradient="linear-gradient(135deg, #1b6112, #3d9428)" loading={loading} />
         </div>
       </div>
     </div>
@@ -211,14 +215,12 @@ export default function CadastrarFeiraPage() {
   const [dataFeira, setDataFeira] = useState(defaultDateTime());
 
   /* Comerciantes */
-  const [todosComerciantess, setTodosComerciantes] = useState<ComercianteDTO[]>([]);
   const [cmLeft, setCmLeft] = useState<ComercianteDTO[]>([]);
   const [cmRight, setCmRight] = useState<ComercianteDTO[]>([]);
   const [cmLeftSel, setCmLeftSel] = useState<string[]>([]);
   const [cmRightSel, setCmRightSel] = useState<string[]>([]);
 
   /* Itens */
-  const [todosItens, setTodosItens] = useState<ItemDTO[]>([]);
   const [itLeft, setItLeft] = useState<ItemDTO[]>([]);
   const [itRight, setItRight] = useState<ItemDTO[]>([]);
   const [itLeftSel, setItLeftSel] = useState<string[]>([]);
@@ -234,9 +236,7 @@ export default function CadastrarFeiraPage() {
     if (!token) return;
     Promise.all([listarComerciantes(token), listarItens(token)])
       .then(([coms, itens]) => {
-        setTodosComerciantes(coms);
         setCmRight(coms);
-        setTodosItens(itens);
         setItRight(itens);
       })
       .catch(() => setErro("Erro ao carregar dados do servidor"))

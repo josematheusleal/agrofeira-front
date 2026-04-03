@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 interface AuthContextType {
   token: string | null;
@@ -14,17 +14,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem("ecofeira_token");
-    const storedUsername = localStorage.getItem("ecofeira_username");
-    if (storedToken) setToken(storedToken);
-    if (storedUsername) setUsername(storedUsername);
-    setIsInitialized(true);
-  }, []);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ecofeira_token");
+    }
+    return null;
+  });
+  const [username, setUsername] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ecofeira_username");
+    }
+    return null;
+  });
+  const [isInitialized] = useState(typeof window !== "undefined");
 
   function login(token: string, username: string) {
     localStorage.setItem("ecofeira_token", token);

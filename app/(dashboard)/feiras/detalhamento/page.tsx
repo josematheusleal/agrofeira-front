@@ -176,6 +176,8 @@ function DetCard({
   );
 }
 
+export const dynamic = "force-dynamic";
+
 export default function DetalhamentoFeiraPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -395,20 +395,40 @@ export default function ComercianteItemPage() {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
+  let isMounted = true;
+
+  const loadData = async () => {
     if (!token || !feiraId) {
-      // sem feiraId, carrega mock mesmo assim para preview
-      setComerciantes(MOCK_COMERCIANTES);
-      setLoading(false);
+      if (isMounted) {
+        setComerciantes(MOCK_COMERCIANTES);
+        setLoading(false);
+      }
       return;
     }
-    fetchComerciantesComItens(token, feiraId)
-      .then(setComerciantes)
-      .catch(() => {
+
+    try {
+      const data = await fetchComerciantesComItens(token, feiraId);
+      if (isMounted) {
+        setComerciantes(data);
+      }
+    } catch {
+      if (isMounted) {
         setErro("Erro ao carregar dados. Exibindo dados de demonstração.");
         setComerciantes(MOCK_COMERCIANTES);
-      })
-      .finally(() => setLoading(false));
-  }, [token, feiraId]);
+      }
+    } finally {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }
+  };
+
+  loadData();
+
+  return () => {
+    isMounted = false;
+  };
+}, [token, feiraId]);
 
   function handleLogout() { logout(); router.push("/login"); }
 

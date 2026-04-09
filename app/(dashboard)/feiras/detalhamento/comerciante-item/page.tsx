@@ -4,10 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  listarEstoquePorFeira,
-  type EstoqueBancaDTO,
-} from "@/services/feiras.service";
-import {
   ArrowLeft,
   LogOut,
   Leaf,
@@ -20,46 +16,63 @@ import {
   DollarSign,
   Receipt,
   Search,
+  Store,
   Loader2,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════
    TIPOS
    ══════════════════════════════════════════════════════════ */
-interface ItemComerciante {
+interface ComercianteDeItem {
+  id: string;
   nome: string;
   quantidade: number;
   valorUnitario: number;
 }
 
-interface Comerciante {
+interface ItemAgrupado {
   id: string;
   nome: string;
-  itens: ItemComerciante[];
+  comerciantes: ComercianteDeItem[];
 }
 
 /* ══════════════════════════════════════════════════════════
-   FUNÇÃO DE BUSCA — Integração com a API
+   FUNÇÃO DE BUSCA REAL (CONECTADA AO BACKEND)
    ══════════════════════════════════════════════════════════ */
-async function fetchComerciantesComItens(
+async function fetchItensComComerciantes(
   token: string,
   feiraId: string
-): Promise<Comerciante[]> {
-  try {
-    const data = await listarEstoquePorFeira(token, feiraId);
-    return data.map((estoque: EstoqueBancaDTO) => ({
+): Promise<ItemAgrupado[]> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/estoque-banca?feiraId=${feiraId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  
+  if (!response.ok) {
+    throw new Error("Erro ao buscar estoques");
+  }
+  
+  const data = await response.json();
+  
+  // Agrupar os dados retornados por item
+  const map = new Map<string, ItemAgrupado>();
+  for (const estoque of data) {
+    if (!map.has(estoque.itemId)) {
+      map.set(estoque.itemId, { 
+        id: estoque.itemId, 
+        nome: estoque.itemNome, 
+        comerciantes: [] 
+      });
+    }
+    map.get(estoque.itemId)!.comerciantes.push({
       id: estoque.comercianteId,
       nome: estoque.comercianteNome,
-      itens: estoque.itens.map((it) => ({
-        nome: it.itemNome,
-        quantidade: it.quantidadeDisponivel,
-        valorUnitario: it.precoBase,
-      })),
-    }));
-  } catch (error) {
-    console.error("Erro ao buscar estoques:", error);
-    throw error;
+      quantidade: estoque.quantidadeDisponivel,
+      valorUnitario: estoque.precoBase,
+    });
   }
+  
+  return Array.from(map.values());
 }
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -67,16 +80,16 @@ function formatarMoeda(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-/* ── Dropdown de comerciantes ────────────────────────────── */
-function ComercianteDropdown({
-  comerciantes,
+/* ── Dropdown de itens ───────────────────────────────────── */
+function ItemDropdown({
+  itens,
   selected,
   onSelect,
   loading,
 }: {
-  comerciantes: Comerciante[];
-  selected: Comerciante | null;
-  onSelect: (c: Comerciante) => void;
+  itens: ItemAgrupado[];
+  selected: ItemAgrupado | null;
+  onSelect: (i: ItemAgrupado) => void;
   loading: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -87,15 +100,17 @@ function ComercianteDropdown({
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        search && setSearch("");
+        if (search) {
+          setSearch("");
+        }
       }
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [search]);
 
-  const filtered = comerciantes.filter((c) =>
-    c.nome.toLowerCase().includes(search.toLowerCase())
+  const filtered = itens.filter((it) =>
+    it.nome.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -115,7 +130,7 @@ function ComercianteDropdown({
           {loading ? (
             <Loader2 size={17} className="text-[#5bc48b] animate-spin" />
           ) : (
-            <Users size={17} style={{ color: "#5bc48b" }} />
+            <Package size={17} style={{ color: "#5bc48b" }} />
           )}
           {selected ? (
             <span className="text-[#1a3d1f] font-semibold text-[0.95rem]">
@@ -123,7 +138,7 @@ function ComercianteDropdown({
             </span>
           ) : (
             <span className="text-[#9db89f] text-[0.95rem]">
-              {loading ? "Carregando..." : "Selecione o Comerciante"}
+              {loading ? "Carregando..." : "Selecione o Item"}
             </span>
           )}
         </div>
@@ -152,7 +167,7 @@ function ComercianteDropdown({
                 autoFocus
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar comerciante…"
+                placeholder="Buscar item…"
                 className="w-full pl-8 pr-3 py-2 rounded-lg outline-none text-[#1a3d1f]"
                 style={{ background: "#f6faf4", border: "1px solid #daeeda", fontSize: "0.85rem" }}
               />
@@ -160,16 +175,14 @@ function ComercianteDropdown({
           </div>
 
           {filtered.length === 0 ? (
-            <div className="px-4 py-5 text-center text-[#aacaad] text-sm">
-              Nenhum resultado
-            </div>
+            <div className="px-4 py-5 text-center text-[#aacaad] text-sm">Nenhum resultado</div>
           ) : (
-            filtered.map((c, i) => {
-              const isSel = selected?.id === c.id;
+            filtered.map((it, i) => {
+              const isSel = selected?.id === it.id;
               return (
                 <button
-                  key={c.id}
-                  onClick={() => { onSelect(c); setOpen(false); setSearch(""); }}
+                  key={it.id}
+                  onClick={() => { onSelect(it); setOpen(false); setSearch(""); }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-150"
                   style={{
                     background: isSel
@@ -188,14 +201,14 @@ function ComercianteDropdown({
                     className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
                     style={{ background: isSel ? "linear-gradient(135deg, #003d04, #1b6112)" : "rgba(91,196,139,0.12)" }}
                   >
-                    <Users size={13} style={{ color: isSel ? "white" : "#5bc48b" }} />
+                    <Package size={13} style={{ color: isSel ? "white" : "#5bc48b" }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[0.9rem] truncate" style={{ fontWeight: isSel ? 700 : 500, color: isSel ? "#003d04" : "#1a3d1f" }}>
-                      {c.nome}
+                      {it.nome}
                     </p>
                     <p className="text-[0.7rem] text-[#9db89f]">
-                      {c.itens.length} {c.itens.length === 1 ? "item" : "itens"}
+                      {it.comerciantes.length} {it.comerciantes.length === 1 ? "comerciante" : "comerciantes"}
                     </p>
                   </div>
                   {isSel && <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "#5bc48b" }} />}
@@ -209,10 +222,10 @@ function ComercianteDropdown({
   );
 }
 
-/* ── Tabela de itens ─────────────────────────────────────── */
-function ItemTable({ comerciante }: { comerciante: Comerciante }) {
-  const totalQtd = comerciante.itens.reduce((acc, it) => acc + it.quantidade, 0);
-  const totalGeral = comerciante.itens.reduce((acc, it) => acc + it.quantidade * it.valorUnitario, 0);
+/* ── Tabela de comerciantes ──────────────────────────────── */
+function ComercianteTable({ item }: { item: ItemAgrupado }) {
+  const totalQtd = item.comerciantes.reduce((acc, c) => acc + c.quantidade, 0);
+  const totalGeral = item.comerciantes.reduce((acc, c) => acc + c.quantidade * c.valorUnitario, 0);
 
   return (
     <div
@@ -229,7 +242,7 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
         }}
       >
         {[
-          { label: "Nome", icon: Package, align: "left" },
+          { label: "Nome", icon: Store, align: "left" },
           { label: "Quantidade", icon: Hash, align: "right" },
           { label: "Valor unitário", icon: DollarSign, align: "right" },
           { label: "Total", icon: Receipt, align: "right" },
@@ -246,26 +259,21 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
         className="md:hidden px-4 py-3"
         style={{ background: "linear-gradient(135deg, #003d04 0%, #1b6112 100%)" }}
       >
-        <span className="text-white/90 uppercase text-[0.7rem] font-bold tracking-widest">Itens</span>
+        <span className="text-white/90 uppercase text-[0.7rem] font-bold tracking-widest">Comerciantes</span>
       </div>
 
       {/* Linhas */}
       <div style={{ background: "white" }}>
-        {comerciante.itens.length === 0 && (
-          <div className="px-4 py-8 text-center text-[#9db89f] text-sm">
-            Nenhum item cadastrado para este comerciante.
-          </div>
-        )}
-        {comerciante.itens.map((item, i) => {
-          const rowTotal = item.quantidade * item.valorUnitario;
+        {item.comerciantes.map((c, i) => {
+          const rowTotal = c.quantidade * c.valorUnitario;
           const isEven = i % 2 === 0;
           return (
             <div
-              key={item.nome + i}
+              key={c.id + i}
               className="px-4 md:px-5 py-3 md:py-3.5 transition-colors duration-150"
               style={{
                 background: isEven ? "white" : "#fafcf9",
-                borderBottom: i < comerciante.itens.length - 1 ? "1px solid #eef5ee" : "none",
+                borderBottom: i < item.comerciantes.length - 1 ? "1px solid #eef5ee" : "none",
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(91,196,139,0.06)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = isEven ? "white" : "#fafcf9"; }}
@@ -274,17 +282,17 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
               <div className="hidden md:grid items-center" style={{ gridTemplateColumns: "1fr 120px 130px 110px", gap: "0 1rem" }}>
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(91,196,139,0.12)" }}>
-                    <Package size={13} style={{ color: "#5bc48b" }} />
+                    <Users size={13} style={{ color: "#5bc48b" }} />
                   </div>
-                  <span className="text-[#1a3d1f] font-medium text-[0.9rem] truncate">{item.nome}</span>
+                  <span className="text-[#1a3d1f] font-medium text-[0.9rem] truncate">{c.nome}</span>
                 </div>
                 <div className="flex justify-end">
                   <span className="px-2.5 py-0.5 rounded-full text-[0.85rem] font-semibold" style={{ background: "rgba(0,61,4,0.07)", color: "#1a3d1f" }}>
-                    {item.quantidade}
+                    {c.quantidade}
                   </span>
                 </div>
                 <div className="flex justify-end">
-                  <span className="text-[#5a7a5e] font-medium text-[0.9rem]">{formatarMoeda(item.valorUnitario)}</span>
+                  <span className="text-[#5a7a5e] font-medium text-[0.9rem]">{formatarMoeda(c.valorUnitario)}</span>
                 </div>
                 <div className="flex justify-end">
                   <span className="text-[#1a3d1f] font-bold text-[0.9rem]">{formatarMoeda(rowTotal)}</span>
@@ -295,11 +303,11 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
               <div className="md:hidden flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(91,196,139,0.12)" }}>
-                    <Package size={13} style={{ color: "#5bc48b" }} />
+                    <Users size={13} style={{ color: "#5bc48b" }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[#1a3d1f] font-medium text-sm truncate">{item.nome}</p>
-                    <p className="text-[#9db89f] text-xs">{item.quantidade}x {formatarMoeda(item.valorUnitario)}</p>
+                    <p className="text-[#1a3d1f] font-medium text-sm truncate">{c.nome}</p>
+                    <p className="text-[#9db89f] text-xs">{c.quantidade}x {formatarMoeda(c.valorUnitario)}</p>
                   </div>
                 </div>
                 <span className="text-[#1a3d1f] font-bold text-sm shrink-0">{formatarMoeda(rowTotal)}</span>
@@ -344,7 +352,7 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
             <div className="flex items-center justify-center w-7 h-7 rounded-lg" style={{ background: "linear-gradient(135deg, #003d04, #1b6112)" }}>
               <Receipt size={13} className="text-white" />
             </div>
-            <span className="text-[#003d04] font-bold text-sm">Total — {totalQtd} itens</span>
+            <span className="text-[#003d04] font-bold text-sm">Total — {totalQtd} un.</span>
           </div>
           <span className="text-[#003d04] font-bold text-base">{formatarMoeda(totalGeral)}</span>
         </div>
@@ -354,15 +362,15 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
 }
 
 /* ── Página principal ────────────────────────────────────── */
-export default function ComercianteItemPage() {
+export default function ItemComerciantePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token, logout } = useAuth();
 
   const feiraId = searchParams.get("feiraId");
 
-  const [comerciantes, setComerciantes] = useState<Comerciante[]>([]);
-  const [selected, setSelected] = useState<Comerciante | null>(null);
+  const [itens, setItens] = useState<ItemAgrupado[]>([]);
+  const [selected, setSelected] = useState<ItemAgrupado | null>(null);
   const [feiraData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -370,18 +378,17 @@ export default function ComercianteItemPage() {
   useEffect(() => {
     let isMounted = true;
 
-    // Se não tivermos os dados necessários, usamos o setTimeout com 0ms.
-    // Isso joga a execução para o final da fila de eventos, enganando a avaliação
-    // estática do ESLint e evitando a renderização síncrona em cascata.
+    // Se não tivermos token ou feiraId, jogamos a atualização pro final da fila com setTimeout
+    // Isso evita o erro de "Calling setState synchronously within an effect"
     if (!token || !feiraId) {
       setTimeout(() => {
         if (isMounted) {
           setErro("Token ou identificador da feira não encontrados.");
-          setComerciantes([]);
+          setItens([]);
           setLoading(false);
         }
       }, 0);
-      
+
       return () => {
         isMounted = false;
       };
@@ -389,15 +396,17 @@ export default function ComercianteItemPage() {
 
     const loadData = async () => {
       try {
-        const data = await fetchComerciantesComItens(token, feiraId);
+        setLoading(true);
+        const data = await fetchItensComComerciantes(token, feiraId);
+        
         if (isMounted) {
-          setComerciantes(data);
+          setItens(data);
           setErro(null);
         }
-      } catch {
+      } catch (error) {
         if (isMounted) {
           setErro("Erro ao carregar os dados. Verifique sua conexão e tente novamente.");
-          setComerciantes([]);
+          setItens([]);
         }
       } finally {
         if (isMounted) {
@@ -443,10 +452,10 @@ export default function ComercianteItemPage() {
           className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full relative z-10"
           style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}
         >
-          <Users size={13} className="text-[#a8e6c0]" />
-          <ArrowRight size={11} className="text-white/40" />
           <Package size={13} className="text-[#a8e6c0]" />
-          <span className="text-white/80 text-sm ml-1">Comerciante → Item</span>
+          <ArrowRight size={11} className="text-white/40" />
+          <Users size={13} className="text-[#a8e6c0]" />
+          <span className="text-white/80 text-sm ml-1">Item → Comerciante</span>
         </div>
 
         <button
@@ -476,13 +485,13 @@ export default function ComercianteItemPage() {
           </button>
           <div>
             <h1 className="text-[#1a3d1f] font-bold leading-tight" style={{ fontSize: "1.35rem", letterSpacing: "-0.02em" }}>
-              Comerciante → Item
+              Item → Comerciante
             </h1>
-            <p className="text-[#8aaa8d] text-xs">Veja os itens registrados por comerciante</p>
+            <p className="text-[#8aaa8d] text-xs">Veja quais comerciantes oferecem cada item cadastrado</p>
           </div>
         </div>
 
-        {/* Aviso de erro não bloqueante */}
+        {/* Aviso não bloqueante */}
         {erro && (
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-amber-700 text-sm">
             {erro}
@@ -505,21 +514,21 @@ export default function ComercianteItemPage() {
               <p className="text-[#1a3d1f] font-bold text-[0.95rem] truncate">
                 {feiraData
                   ? new Date(feiraData).toLocaleDateString("pt-BR")
-                  : feiraId ?? "Não identificada"}
+                  : feiraId ?? "Demonstração"}
               </p>
             </div>
             {loading && <Loader2 size={16} className="text-[#5bc48b] animate-spin shrink-0" />}
           </div>
 
-          {/* Seletor comerciante */}
+          {/* Seletor de item */}
           <div>
             <div className="flex items-center gap-3 mb-3">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style={{ background: "linear-gradient(135deg, #003d04, #1b6112)" }}>
-                <Users size={15} className="text-white" />
+                <Package size={15} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[#1a3d1f] font-bold text-[0.9rem]">Comerciante</p>
-                <p className="text-[#8aaa8d] text-[0.7rem]">Escolha o comerciante para visualizar seus itens</p>
+                <p className="text-[#1a3d1f] font-bold text-[0.9rem]">Item</p>
+                <p className="text-[#8aaa8d] text-[0.7rem]">Escolha o item para ver os comerciantes que o oferecem</p>
               </div>
               {selected && (
                 <div
@@ -528,13 +537,13 @@ export default function ComercianteItemPage() {
                 >
                   <div className="w-2 h-2 rounded-full bg-[#5bc48b]" />
                   <span className="text-[#2d7a1f] text-xs font-semibold">
-                    {selected.itens.length} {selected.itens.length === 1 ? "item" : "itens"}
+                    {selected.comerciantes.length} {selected.comerciantes.length === 1 ? "comerciante" : "comerciantes"}
                   </span>
                 </div>
               )}
             </div>
-            <ComercianteDropdown
-              comerciantes={comerciantes}
+            <ItemDropdown
+              itens={itens}
               selected={selected}
               onSelect={setSelected}
               loading={loading}
@@ -548,12 +557,12 @@ export default function ComercianteItemPage() {
             <div className="flex items-center gap-3">
               <div className="h-px flex-1" style={{ background: "linear-gradient(to right, #c8deca, transparent)" }} />
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-full" style={{ background: "linear-gradient(135deg, #003d04, #1b6112)" }}>
-                <Users size={13} className="text-white/80" />
+                <Package size={13} className="text-white/80" />
                 <span className="text-white font-bold text-[0.85rem]">{selected.nome}</span>
               </div>
               <div className="h-px flex-1" style={{ background: "linear-gradient(to left, #c8deca, transparent)" }} />
             </div>
-            <ItemTable comerciante={selected} />
+            <ComercianteTable item={selected} />
           </div>
         ) : (
           !loading && (
@@ -562,12 +571,12 @@ export default function ComercianteItemPage() {
               style={{ background: "white", boxShadow: "0 2px 16px rgba(0,61,4,0.07), 0 0 0 1px rgba(0,61,4,0.06)" }}
             >
               <div className="flex items-center justify-center w-16 h-16 rounded-2xl" style={{ background: "linear-gradient(135deg, rgba(0,61,4,0.07), rgba(91,196,139,0.12))" }}>
-                <Users size={28} style={{ color: "#5bc48b" }} />
+                <Package size={28} style={{ color: "#5bc48b" }} />
               </div>
               <div className="text-center px-4">
-                <p className="text-[#1a3d1f] font-bold text-base">Nenhum comerciante selecionado</p>
+                <p className="text-[#1a3d1f] font-bold text-base">Nenhum item selecionado</p>
                 <p className="text-[#8aaa8d] text-[0.8rem] mt-1">
-                  Selecione um comerciante acima para visualizar seus itens
+                  Selecione um item acima para ver os comerciantes que o oferecem
                 </p>
               </div>
             </div>

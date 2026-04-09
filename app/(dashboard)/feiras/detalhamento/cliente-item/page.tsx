@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -452,7 +452,7 @@ function ItemTable({ cliente }: { cliente: ClienteAgrupado }) {
 }
 
 /* ── Página principal ────────────────────────────────────── */
-export default function DetalhamentoClienteItemPage() {
+function DetalhamentoClienteItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token, logout } = useAuth();
@@ -687,5 +687,19 @@ export default function DetalhamentoClienteItemPage() {
         <p className="text-[#b8ceba] text-[0.7rem] hidden sm:block">Todos os direitos reservados</p>
       </footer>
     </div>
+  );
+}
+
+export default function ClienteItemPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#f6faf4]">
+          <Loader2 className="animate-spin text-[#5bc48b]" size={32} />
+        </div>
+      }
+    >
+      <DetalhamentoClienteItemPage/>
+    </Suspense>
   );
 }

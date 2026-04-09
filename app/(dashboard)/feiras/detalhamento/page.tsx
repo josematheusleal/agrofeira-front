@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -14,6 +14,7 @@ import {
   BarChart2,
   ChevronRight,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -176,7 +177,8 @@ function DetCard({
   );
 }
 
-export default function DetalhamentoFeiraPage() {
+// COMPONENTE EXTRAÍDO COM A LÓGICA DO USE_SEARCH_PARAMS
+function DetalhamentoFeiraContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { logout } = useAuth();
@@ -330,5 +332,20 @@ export default function DetalhamentoFeiraPage() {
         </p>
       </footer>
     </div>
+  );
+}
+
+// EXPORTAÇÃO PRINCIPAL ENVOLVIDA NO SUSPENSE
+export default function DetalhamentoFeiraPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#f6faf4]">
+          <Loader2 className="animate-spin text-[#5bc48b]" size={32} />
+        </div>
+      }
+    >
+      <DetalhamentoFeiraContent />
+    </Suspense>
   );
 }

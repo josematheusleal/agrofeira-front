@@ -39,44 +39,12 @@ interface Comerciante {
 }
 
 /* ══════════════════════════════════════════════════════════
-   MOCK — fallback para demonstração/teste
-   ══════════════════════════════════════════════════════════ */
-const MOCK_COMERCIANTES: Comerciante[] = [
-  {
-    id: "mock-1",
-    nome: "João Silva",
-    itens: [
-      { nome: "Tomate", quantidade: 5, valorUnitario: 3.5 },
-      { nome: "Alface", quantidade: 10, valorUnitario: 2.0 },
-      { nome: "Cenoura", quantidade: 4, valorUnitario: 2.8 },
-      { nome: "Batata", quantidade: 8, valorUnitario: 4.0 },
-    ],
-  },
-  {
-    id: "mock-2",
-    nome: "Maria Santos",
-    itens: [
-      { nome: "Pimentão", quantidade: 6, valorUnitario: 5.0 },
-      { nome: "Pepino", quantidade: 8, valorUnitario: 2.5 },
-      { nome: "Couve", quantidade: 12, valorUnitario: 1.8 },
-      { nome: "Brócolis", quantidade: 3, valorUnitario: 6.5 },
-      { nome: "Abobrinha", quantidade: 5, valorUnitario: 3.2 },
-    ],
-  },
-];
-
-/* ══════════════════════════════════════════════════════════
-   FUNÇÃO DE BUSCA — conecte ao backend aqui
+   FUNÇÃO DE BUSCA — Integração com a API
    ══════════════════════════════════════════════════════════ */
 async function fetchComerciantesComItens(
   token: string,
   feiraId: string
 ): Promise<Comerciante[]> {
-  if (token === "mock-token-dev") {
-    await new Promise((res) => setTimeout(res, 400));
-    return MOCK_COMERCIANTES;
-  }
-
   try {
     const data = await listarEstoquePorFeira(token, feiraId);
     return data.map((estoque: EstoqueBancaDTO) => ({
@@ -119,12 +87,12 @@ function ComercianteDropdown({
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        setSearch("");
+        search && setSearch("");
       }
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [search]);
 
   const filtered = comerciantes.filter((c) =>
     c.nome.toLowerCase().includes(search.toLowerCase())
@@ -283,6 +251,11 @@ function ItemTable({ comerciante }: { comerciante: Comerciante }) {
 
       {/* Linhas */}
       <div style={{ background: "white" }}>
+        {comerciante.itens.length === 0 && (
+          <div className="px-4 py-8 text-center text-[#9db89f] text-sm">
+            Nenhum item cadastrado para este comerciante.
+          </div>
+        )}
         {comerciante.itens.map((item, i) => {
           const rowTotal = item.quantidade * item.valorUnitario;
           const isEven = i % 2 === 0;
@@ -395,40 +368,42 @@ export default function ComercianteItemPage() {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const loadData = async () => {
-    if (!token || !feiraId) {
-      if (isMounted) {
-        setComerciantes(MOCK_COMERCIANTES);
-        setLoading(false);
+    const loadData = async () => {
+      if (!token || !feiraId) {
+        if (isMounted) {
+          setErro("Token ou identificador da feira não encontrados.");
+          setComerciantes([]);
+          setLoading(false);
+        }
+        return;
       }
-      return;
-    }
 
-    try {
-      const data = await fetchComerciantesComItens(token, feiraId);
-      if (isMounted) {
-        setComerciantes(data);
+      try {
+        const data = await fetchComerciantesComItens(token, feiraId);
+        if (isMounted) {
+          setComerciantes(data);
+          setErro(null);
+        }
+      } catch {
+        if (isMounted) {
+          setErro("Erro ao carregar os dados. Verifique sua conexão e tente novamente.");
+          setComerciantes([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch {
-      if (isMounted) {
-        setErro("Erro ao carregar dados. Exibindo dados de demonstração.");
-        setComerciantes(MOCK_COMERCIANTES);
-      }
-    } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
-    }
-  };
+    };
 
-  loadData();
+    loadData();
 
-  return () => {
-    isMounted = false;
-  };
-}, [token, feiraId]);
+    return () => {
+      isMounted = false;
+    };
+  }, [token, feiraId]);
 
   function handleLogout() { logout(); router.push("/login"); }
 
@@ -522,7 +497,7 @@ export default function ComercianteItemPage() {
               <p className="text-[#1a3d1f] font-bold text-[0.95rem] truncate">
                 {feiraData
                   ? new Date(feiraData).toLocaleDateString("pt-BR")
-                  : feiraId ?? "Demonstração"}
+                  : feiraId ?? "Não identificada"}
               </p>
             </div>
             {loading && <Loader2 size={16} className="text-[#5bc48b] animate-spin shrink-0" />}

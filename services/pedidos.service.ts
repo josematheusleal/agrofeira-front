@@ -27,7 +27,7 @@ export interface PedidoDTO {
 
 export async function listarPedidosPorFeira(
   token: string,
-  feiraId: string
+  feiraId: string,
 ): Promise<PedidoDTO[]> {
   const response = await fetch(`${API_URL}/api/pedidos/feira/${feiraId}`, {
     headers: {

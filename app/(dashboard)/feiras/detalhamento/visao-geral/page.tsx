@@ -11,7 +11,7 @@ import {
   Package,
   Store,
   ChevronRight,
-  ArrowRight,
+  // ArrowRight,
   Loader2,
   BarChart2,
 } from "lucide-react";
@@ -128,6 +128,8 @@ export default function FeirDetalhamentoVisaoGeral() {
   const handleBack = () => {
     router.back();
   };
+
+  void handleBack;
 
   const handleDetailClick = (
     type: "item" | "comerciante" | "cliente",

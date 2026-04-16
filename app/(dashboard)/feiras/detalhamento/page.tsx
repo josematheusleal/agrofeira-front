@@ -101,18 +101,26 @@ function DetCard({
       {/* Círculos decorativos */}
       <div
         className="absolute -top-6 -right-6 w-20 h-20 rounded-full transition-all duration-300 pointer-events-none"
-        style={{ background: hovered ? "rgba(255,255,255,0.12)" : `${option.accent}10` }}
+        style={{
+          background: hovered ? "rgba(255,255,255,0.12)" : `${option.accent}10`,
+        }}
       />
       <div
         className="absolute -bottom-4 -right-4 w-12 h-12 rounded-full transition-all duration-300 pointer-events-none"
-        style={{ background: hovered ? "rgba(255,255,255,0.08)" : `${option.accent}08` }}
+        style={{
+          background: hovered ? "rgba(255,255,255,0.08)" : `${option.accent}08`,
+        }}
       />
 
       {/* Ícones */}
       <div className="relative z-10 flex items-center gap-2 mb-5">
         <div
           className="flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300"
-          style={{ background: hovered ? "rgba(255,255,255,0.2)" : `${option.accent}12` }}
+          style={{
+            background: hovered
+              ? "rgba(255,255,255,0.2)"
+              : `${option.accent}12`,
+          }}
         >
           <LeftIcon
             size={20}
@@ -129,11 +137,17 @@ function DetCard({
             />
             <div
               className="flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300"
-              style={{ background: hovered ? "rgba(255,255,255,0.15)" : `${option.accent}09` }}
+              style={{
+                background: hovered
+                  ? "rgba(255,255,255,0.15)"
+                  : `${option.accent}09`,
+              }}
             >
               <RightIcon
                 size={20}
-                style={{ color: hovered ? "rgba(255,255,255,0.85)" : option.accent }}
+                style={{
+                  color: hovered ? "rgba(255,255,255,0.85)" : option.accent,
+                }}
                 className="transition-colors duration-300"
               />
             </div>
@@ -164,7 +178,11 @@ function DetCard({
       <div className="relative z-10 mt-4 self-end">
         <div
           className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300"
-          style={{ background: hovered ? "rgba(255,255,255,0.2)" : `${option.accent}10` }}
+          style={{
+            background: hovered
+              ? "rgba(255,255,255,0.2)"
+              : `${option.accent}10`,
+          }}
         >
           <ChevronRight
             size={14}
@@ -193,13 +211,16 @@ function DetalhamentoFeiraContent() {
   return (
     <div
       className="min-h-screen w-full flex flex-col"
-      style={{ background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)" }}
+      style={{
+        background: "linear-gradient(160deg, #f6faf4 0%, #edf5eb 100%)",
+      }}
     >
       {/* Header */}
       <header
         className="w-full flex items-center justify-between px-4 md:px-8 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
+          background:
+            "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
           minHeight: "64px",
           boxShadow: "0 4px 24px rgba(0,61,4,0.25)",
         }}
@@ -239,8 +260,14 @@ function DetalhamentoFeiraContent() {
             fontWeight: 600,
             fontSize: "0.875rem",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.2)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)"; }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.2)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.1)";
+          }}
         >
           <LogOut size={15} />
           <span>Sair</span>
@@ -249,7 +276,6 @@ function DetalhamentoFeiraContent() {
 
       {/* Corpo */}
       <main className="flex-1 px-4 md:px-6 py-6 max-w-4xl w-full mx-auto flex flex-col gap-6">
-
         {/* Voltar + título */}
         <div className="flex items-center gap-4">
           <button
@@ -260,8 +286,13 @@ function DetalhamentoFeiraContent() {
               boxShadow: "0 2px 10px rgba(0,61,4,0.12)",
               border: "1px solid rgba(0,61,4,0.1)",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#f0faf3"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "white"; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "#f0faf3";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "white";
+            }}
           >
             <ArrowLeft size={17} style={{ color: "#003d04" }} />
           </button>
@@ -282,7 +313,8 @@ function DetalhamentoFeiraContent() {
         <div
           className="rounded-2xl px-5 py-4 flex items-center gap-4"
           style={{
-            background: "linear-gradient(135deg, rgba(0,61,4,0.06), rgba(91,196,139,0.1))",
+            background:
+              "linear-gradient(135deg, rgba(0,61,4,0.06), rgba(91,196,139,0.1))",
             border: "1.5px solid rgba(91,196,139,0.25)",
           }}
         >
@@ -304,11 +336,21 @@ function DetalhamentoFeiraContent() {
 
         {/* Divisor */}
         <div className="flex items-center gap-3">
-          <div className="h-px flex-1" style={{ background: "linear-gradient(to right, #c8deca, transparent)" }} />
+          <div
+            className="h-px flex-1"
+            style={{
+              background: "linear-gradient(to right, #c8deca, transparent)",
+            }}
+          />
           <p className="text-[#8aaa8d] px-3 text-[0.72rem] font-semibold tracking-widest uppercase">
             Opções de Detalhamento
           </p>
-          <div className="h-px flex-1" style={{ background: "linear-gradient(to left, #c8deca, transparent)" }} />
+          <div
+            className="h-px flex-1"
+            style={{
+              background: "linear-gradient(to left, #c8deca, transparent)",
+            }}
+          />
         </div>
 
         {/* Grid de cards */}

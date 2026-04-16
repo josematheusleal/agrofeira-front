@@ -56,7 +56,7 @@ const registerCards: CardItem[] = [
     icon: Package,
     description: "Insira produtos e itens",
     accent: "#3d9428",
-    href: "/itens/novo",
+    href: "/itens/cadastrar",
   },
   {
     label: "Ver",

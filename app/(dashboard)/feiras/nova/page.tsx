@@ -3,6 +3,8 @@
 import { useState, useEffect, type ElementType } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import Header from "@/components/dashboard/Header";
+import Footer from "@/components/dashboard/Footer";
 import {
   listarComerciantes,
   listarItens,
@@ -12,8 +14,6 @@ import {
 } from "@/services/cadastrar-feira.service";
 import {
   ArrowLeft,
-  LogOut,
-  Leaf,
   Calendar,
   Users,
   Package,
@@ -22,7 +22,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Check,
-  Store,
   Loader2,
 } from "lucide-react";
 
@@ -306,7 +305,7 @@ function TransferList({
 /* ── Página principal ────────────────────────────────────── */
 export default function CadastrarFeiraPage() {
   const router = useRouter();
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
 
   /* Data/hora */
   const [dataFeira, setDataFeira] = useState(defaultDateTime());
@@ -432,11 +431,6 @@ export default function CadastrarFeiraPage() {
     }
   }
 
-  function handleLogout() {
-    logout();
-    router.push("/login");
-  }
-
   return (
     <div
       className="min-h-screen w-full flex flex-col"
@@ -445,63 +439,7 @@ export default function CadastrarFeiraPage() {
       }}
     >
       {/* Header */}
-      <header
-        className="w-full flex items-center justify-between px-4 md:px-8 relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, #003d04 0%, #1b6112 60%, #2d7a1f 100%)",
-          minHeight: "64px",
-          boxShadow: "0 4px 24px rgba(0,61,4,0.25)",
-        }}
-      >
-        <div className="absolute -left-10 -top-10 w-40 h-40 rounded-full opacity-10 bg-[#5bc48b] pointer-events-none" />
-        <div className="absolute right-40 -bottom-12 w-36 h-36 rounded-full opacity-10 bg-[#5bc48b] pointer-events-none" />
-
-        <div className="flex items-center gap-2.5 relative z-10">
-          <div
-            className="flex items-center justify-center rounded-xl p-2"
-            style={{ background: "rgba(255,255,255,0.15)" }}
-          >
-            <Leaf size={20} className="text-white" />
-          </div>
-          <span className="text-white font-bold text-[1.1rem] tracking-tight">
-            EcoFeira
-          </span>
-        </div>
-
-        <div
-          className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full relative z-10"
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.2)",
-          }}
-        >
-          <Store size={13} className="text-[#a8e6c0]" />
-          <span className="text-white/80 text-sm">Cadastrar Feira</span>
-        </div>
-
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-xl transition-all duration-200 text-white/85 hover:text-white relative z-10"
-          style={{
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.18)",
-            fontWeight: 600,
-            fontSize: "0.875rem",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background =
-              "rgba(255,255,255,0.2)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background =
-              "rgba(255,255,255,0.1)";
-          }}
-        >
-          <LogOut size={15} />
-          <span>Sair</span>
-        </button>
-      </header>
+      <Header />
 
       {/* Body */}
       <main className="flex-1 px-4 md:px-6 py-6 max-w-5xl w-full mx-auto flex flex-col gap-5">
@@ -735,19 +673,6 @@ export default function CadastrarFeiraPage() {
           </button>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="px-4 md:px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Leaf size={13} className="text-[#5bc48b]" />
-          <p className="text-[#9db89f] text-xs">
-            © 2026 EcoFeira · Associação Agroecológica
-          </p>
-        </div>
-        <p className="text-[#b8ceba] text-[0.7rem] hidden sm:block">
-          Todos os direitos reservados
-        </p>
-      </footer>
     </div>
   );
 }

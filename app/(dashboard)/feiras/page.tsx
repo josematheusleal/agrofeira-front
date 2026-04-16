@@ -635,19 +635,6 @@ export default function GerenciarFeiraPage() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="px-4 md:px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Leaf size={13} className="text-[#5bc48b]" />
-          <p className="text-[#9db89f] text-xs">
-            © 2026 EcoFeira · Associação Agroecológica
-          </p>
-        </div>
-        <p className="text-[#b8ceba] text-[0.7rem] hidden sm:block">
-          Todos os direitos reservados
-        </p>
-      </footer>
     </div>
   );
 }

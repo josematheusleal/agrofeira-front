@@ -25,6 +25,17 @@ export interface PedidoDTO {
   itens: ItemPedidoDTO[];
 }
 
+export async function listarTodosPedidos(token: string): Promise<PedidoDTO[]> {
+  const response = await fetch(`${API_URL}/api/pedidos`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error("Erro ao buscar pedidos");
+  return response.json();
+}
+
 export async function listarPedidosPorFeira(
   token: string,
   feiraId: string,
@@ -36,5 +47,19 @@ export async function listarPedidosPorFeira(
     },
   });
   if (!response.ok) throw new Error("Erro ao buscar pedidos da feira");
+  return response.json();
+}
+
+export async function buscarPedidoPorId(
+  token: string,
+  pedidoId: string,
+): Promise<PedidoDTO> {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error("Erro ao buscar pedido");
   return response.json();
 }

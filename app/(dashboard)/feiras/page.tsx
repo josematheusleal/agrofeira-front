@@ -415,7 +415,9 @@ export default function GerenciarFeiraPage() {
         setFeiras(data);
       } catch {
         setFeiras(MOCK_FEIRAS);
-        setError("Não foi possível carregar as feiras da API, usando dados locais.");
+        setError(
+          "Não foi possível carregar as feiras da API, usando dados locais.",
+        );
       } finally {
         setLoading(false);
       }

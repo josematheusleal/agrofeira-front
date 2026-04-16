@@ -41,7 +41,7 @@ export async function listarFeiras(token: string): Promise<FeiraDTO[]> {
 
 export async function listarEstoquePorFeira(
   token: string,
-  feiraId: string
+  feiraId: string,
 ): Promise<EstoqueBancaDTO[]> {
   const response = await fetch(`${API_URL}/api/feiras/${feiraId}/estoques`, {
     headers: {

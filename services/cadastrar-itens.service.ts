@@ -37,8 +37,16 @@ export const cadastrarItemService = async (
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Erro ao cadastrar item: ${error}`);
+    let errorMessage = "Erro ao cadastrar item";
+    try {
+      const errorData = await response.json();
+      errorMessage =
+        errorData.message || errorData.error || `Erro ${response.status}`;
+    } catch {
+      errorMessage = `Erro ${response.status}: ${response.statusText}`;
+    }
+    console.error("Erro na API:", errorMessage);
+    throw new Error(errorMessage);
   }
 
   return response.json();

@@ -9,6 +9,10 @@ import { formatarData } from "@/utils/formatters";
 import { useDetalhamentoComerciante } from "@/features/feiras/hooks/useDetalhamentoComerciante";
 import { ComercianteDropdown } from "@/features/feiras/components/ComercianteDropdown";
 import { BancaItemTable } from "@/features/feiras/components/BancaItemTable";
+import {
+  DetalhamentoSelectorHeader,
+  DetalhamentoTableSeparator,
+} from "@/components/ui/DetalhamentoHeaders";
 
 function DetalhamentoComercianteItemContent() {
   const searchParams = useSearchParams();
@@ -58,28 +62,16 @@ function DetalhamentoComercianteItemContent() {
 
         {/* Seletor de banca */}
         <div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-gradient-to-br from-[#003d04] to-[#1b6112]">
-              <StoreIcon size={15} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[#1a3d1f] font-bold text-[0.9rem]">
-                Comerciante / Banca
-              </p>
-              <p className="text-[#8aaa8d] text-[0.7rem]">
-                Escolha a banca para ver os produtos e estoque
-              </p>
-            </div>
-            {selected && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full shrink-0 bg-[#5bc48b1f] border border-[#5bc48b4d]">
-                <div className="w-2 h-2 rounded-full bg-[#5bc48b]" />
-                <span className="text-[#2d7a1f] text-xs font-semibold">
-                  {selected.itens.length}{" "}
-                  {selected.itens.length === 1 ? "item" : "itens"}
-                </span>
-              </div>
-            )}
-          </div>
+          <DetalhamentoSelectorHeader
+            icon={StoreIcon}
+            title="Comerciante / Banca"
+            subtitle="Escolha a banca para ver os produtos e estoque"
+            badgeLabel={
+              selected
+                ? `${selected.itens.length} ${selected.itens.length === 1 ? "item" : "itens"}`
+                : undefined
+            }
+          />
           <ComercianteDropdown
             bancas={bancas}
             selected={selected}
@@ -92,16 +84,10 @@ function DetalhamentoComercianteItemContent() {
       {/* Tabela ou empty state */}
       {selected ? (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-[#c8deca] to-transparent" />
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-br from-[#003d04] to-[#1b6112]">
-              <StoreIcon size={13} className="text-white/80" />
-              <span className="text-white font-bold text-[0.85rem]">
-                {selected.comercianteNome}
-              </span>
-            </div>
-            <div className="h-px flex-1 bg-gradient-to-l from-[#c8deca] to-transparent" />
-          </div>
+          <DetalhamentoTableSeparator
+            icon={StoreIcon}
+            label={selected.comercianteNome}
+          />
           <BancaItemTable banca={selected} />
         </div>
       ) : (

@@ -1,41 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback } from "react";
 import {
   fetchItensComComerciantes,
   type ItemAgrupado,
 } from "@/features/feiras/services/feiras.service";
+import { useFetchFeiraData } from "./useFetchFeiraData";
 
 export function useDetalhamentoItem(
   token: string | null,
   feiraId: string | null,
 ) {
-  const [itens, setItens] = useState<ItemAgrupado[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-  const [selected, setSelected] = useState<ItemAgrupado | null>(null);
+  const fetchFn = useCallback(
+    (t: string, id: string) => fetchItensComComerciantes(t, id),
+    [],
+  );
 
-  useEffect(() => {
-    if (!token || !feiraId) return;
-
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await fetchItensComComerciantes(token!, feiraId!);
-        setItens(data);
-        setErro(null);
-      } catch {
-        setErro("Erro ao carregar os dados dos itens. Tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, [token, feiraId]);
+  const { data, selected, setSelected, loading, erro } =
+    useFetchFeiraData<ItemAgrupado>(
+      token,
+      feiraId,
+      fetchFn,
+      "Erro ao carregar os dados dos itens. Tente novamente.",
+    );
 
   return {
-    itens,
+    itens: data,
     selected,
     setSelected,
     loading,

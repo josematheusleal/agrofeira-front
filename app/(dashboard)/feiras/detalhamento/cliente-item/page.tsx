@@ -9,6 +9,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { useDetalhamentoCliente } from "@/features/feiras/hooks/useDetalhamentoCliente";
 import { ClienteDropdown } from "@/features/feiras/components/ClienteDropdown";
 import { ItemTable } from "@/features/feiras/components/ItemTable";
+import {
+  DetalhamentoSelectorHeader,
+  DetalhamentoTableSeparator,
+} from "@/components/ui/DetalhamentoHeaders";
 
 function DetalhamentoClienteItemContent() {
   const searchParams = useSearchParams();
@@ -56,26 +60,16 @@ function DetalhamentoClienteItemContent() {
 
         {/* Seletor de cliente */}
         <div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-gradient-to-br from-[#003d04] to-[#1b6112]">
-              <UserIcon size={15} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[#1a3d1f] font-bold text-[0.9rem]">Cliente</p>
-              <p className="text-[#8aaa8d] text-[0.7rem]">
-                Escolha o cliente para visualizar seus itens pedidos
-              </p>
-            </div>
-            {selected && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full shrink-0 bg-[#5bc48b1f] border border-[#5bc48b4d]">
-                <div className="w-2 h-2 rounded-full bg-[#5bc48b]" />
-                <span className="text-[#2d7a1f] text-xs font-semibold">
-                  {selected.itens.length}{" "}
-                  {selected.itens.length === 1 ? "item" : "itens"}
-                </span>
-              </div>
-            )}
-          </div>
+          <DetalhamentoSelectorHeader
+            icon={UserIcon}
+            title="Cliente"
+            subtitle="Escolha o cliente para visualizar seus itens pedidos"
+            badgeLabel={
+              selected
+                ? `${selected.itens.length} ${selected.itens.length === 1 ? "item" : "itens"}`
+                : undefined
+            }
+          />
           <ClienteDropdown
             clientes={clientes}
             selected={selected}
@@ -88,16 +82,11 @@ function DetalhamentoClienteItemContent() {
       {/* Tabela ou empty state */}
       {selected ? (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-[#c8deca] to-transparent" />
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-br from-[#003d04] to-[#1b6112]">
-              <UserIcon size={13} className="text-white/80" />
-              <span className="text-white font-bold text-[0.85rem]">
-                {selected.clienteNome}
-              </span>
-            </div>
-            <div className="h-px flex-1 bg-gradient-to-l from-[#c8deca] to-transparent" />
-          </div>
+          <DetalhamentoTableSeparator
+            icon={UserIcon}
+            label={selected.clienteNome}
+          />
+
           <ItemTable cliente={selected} />
         </div>
       ) : (

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { DecorativeCircle } from "@/components/ui/DecorativeCircle";
 
-interface ActionOption {
+export interface ActionCardData {
   label: string;
   sublabel?: string;
   icon: React.ElementType;
@@ -14,10 +14,11 @@ interface ActionOption {
   href?: string;
 }
 
-interface FeiraActionCardProps {
-  option: ActionOption;
-  disabled: boolean;
-  feiraId: string | null;
+interface ActionCardProps {
+  card: ActionCardData;
+  disabled?: boolean;
+  queryString?: string; // e.g., "?feiraId=123"
+  delayClass?: string; // e.g., "[animation-delay:60ms]"
 }
 
 const stylesMap: Record<
@@ -56,33 +57,33 @@ const stylesMap: Record<
   },
 };
 
-export default function FeiraActionCard({
-  option,
-  disabled,
-  feiraId,
-}: Readonly<FeiraActionCardProps>) {
+export function ActionCard({
+  card,
+  disabled = false,
+  queryString = "",
+  delayClass = "",
+}: Readonly<ActionCardProps>) {
   const [hovered, setHovered] = useState(false);
   const router = useRouter();
   const active = !disabled && hovered;
 
   function handleClick() {
-    if (disabled || !option.href) return;
-    const url = feiraId ? `${option.href}?feiraId=${feiraId}` : option.href;
-    router.push(url);
+    if (disabled || !card.href) return;
+    router.push(`${card.href}${queryString}`);
   }
 
-  const Icon = option.icon;
-  const mapped = stylesMap[option.accent] || stylesMap["#5bc48b"];
+  const Icon = card.icon;
+  const mapped = stylesMap[card.accent] || stylesMap["#5bc48b"];
 
-  let cardClasses = "";
+  let cardClasses = delayClass ? `${delayClass} ` : "";
   if (active) {
-    cardClasses = `shadow-[0_20px_40px_rgba(0,61,4,0.22)] -translate-y-1.25 ${mapped.bg}`;
+    cardClasses += `shadow-[0_20px_40px_rgba(0,61,4,0.22)] -translate-y-1.25 ${mapped.bg}`;
   } else if (disabled) {
-    cardClasses =
+    cardClasses +=
       "bg-[#f8f9f8] opacity-45 cursor-not-allowed shadow-[0_1px_4px_rgba(0,61,4,0.04)]";
   } else {
-    cardClasses =
-      "bg-white shadow-[0_2px_16px_rgba(0,61,4,0.08)] border border-[rgba(0,61,4,0.06)]";
+    cardClasses +=
+      "bg-white shadow-[0_2px_16px_rgba(0,61,4,0.08)] border border-[rgba(0,61,4,0.06)] hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,61,4,0.2),0_0_0_1px_rgba(0,61,4,0.06)]";
   }
 
   return (
@@ -96,13 +97,13 @@ export default function FeiraActionCard({
       {/* Círculos decorativos */}
       <DecorativeCircle
         size={80}
-        color={active ? "white" : option.accent}
+        color={active ? "white" : card.accent}
         opacity={active ? 0.12 : 0.1}
         className="-top-6 -right-6 transition-all duration-300"
       />
       <DecorativeCircle
         size={48}
-        color={active ? "white" : option.accent}
+        color={active ? "white" : card.accent}
         opacity={active ? 0.07 : 0.08}
         className="-bottom-4 -right-4 transition-all duration-300"
       />
@@ -126,15 +127,15 @@ export default function FeiraActionCard({
             active ? "text-white/75" : "text-[#7aaa80]"
           }`}
         >
-          {option.label}
+          {card.label}
         </p>
-        {option.sublabel && (
+        {card.sublabel && (
           <p
             className={`font-bold text-base leading-tight mb-1.5 transition-colors duration-300 ${
               active ? "text-white" : "text-[#1a3d1f]"
             }`}
           >
-            {option.sublabel}
+            {card.sublabel}
           </p>
         )}
         <p
@@ -142,12 +143,12 @@ export default function FeiraActionCard({
             active ? "text-white/65" : "text-[#8aaa8d]"
           }`}
         >
-          {option.description}
+          {card.description}
         </p>
       </div>
 
       {/* Seta — só se tiver rota */}
-      {option.href && (
+      {card.href && (
         <div className="relative z-10 mt-3 self-end">
           <div
             className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${

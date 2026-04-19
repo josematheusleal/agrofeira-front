@@ -5,7 +5,7 @@ import { formatarData } from "@/utils/formatters";
 import { useFeiras } from "@/features/feiras/hooks/useFeiras";
 import { FEIRA_GERENCIAR_OPTIONS } from "@/features/feiras/constants/gerenciar-options";
 import FeiraDropdown from "@/features/feiras/components/FeiraDropdown";
-import FeiraActionCard from "@/features/feiras/components/FeiraActionCard";
+import { ActionCard } from "@/components/ui/ActionCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function GerenciarFeiraPage() {
@@ -68,11 +68,11 @@ export default function GerenciarFeiraPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
             {FEIRA_GERENCIAR_OPTIONS.map((opt) => (
-              <FeiraActionCard
+              <ActionCard
                 key={opt.label + (opt.sublabel ?? "")}
-                option={opt}
+                card={opt}
                 disabled={!isFeiraSelected}
-                feiraId={selected?.id ?? null}
+                queryString={selected?.id ? `?feiraId=${selected.id}` : ""}
               />
             ))}
           </div>

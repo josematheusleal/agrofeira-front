@@ -1,41 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback } from "react";
 import {
   listarEstoquePorFeira,
   type EstoqueBancaDTO,
 } from "@/features/feiras/services/feiras.service";
+import { useFetchFeiraData } from "./useFetchFeiraData";
 
 export function useDetalhamentoComerciante(
   token: string | null,
   feiraId: string | null,
 ) {
-  const [bancas, setBancas] = useState<EstoqueBancaDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-  const [selected, setSelected] = useState<EstoqueBancaDTO | null>(null);
+  // useCallback is needed because we pass this function as a dependency to useEffect inside the generic hook
+  const fetchFn = useCallback(
+    (t: string, id: string) => listarEstoquePorFeira(t, id),
+    [],
+  );
 
-  useEffect(() => {
-    if (!token || !feiraId) return;
-
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const data = await listarEstoquePorFeira(token!, feiraId!);
-        setBancas(data);
-        setErro(null);
-      } catch {
-        setErro("Erro ao carregar os dados das bancas. Tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [token, feiraId]);
+  const { data, selected, setSelected, loading, erro } =
+    useFetchFeiraData<EstoqueBancaDTO>(
+      token,
+      feiraId,
+      fetchFn,
+      "Erro ao carregar os dados das bancas. Tente novamente.",
+    );
 
   return {
-    bancas,
+    bancas: data,
     selected,
     setSelected,
     loading,

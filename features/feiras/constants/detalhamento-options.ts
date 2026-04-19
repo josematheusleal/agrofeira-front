@@ -1,15 +1,7 @@
-import { Users, Package, User, BarChart2, LucideIcon } from "lucide-react";
+import { Users, Package, User, BarChart2 } from "lucide-react";
+import { ActionCardData } from "@/components/ui/ActionCard";
 
-export interface DetOption {
-  label: string;
-  leftIcon: LucideIcon;
-  rightIcon: LucideIcon | null;
-  description: string;
-  accent: string;
-  href: string;
-}
-
-export const DETALHAMENTO_OPTIONS: DetOption[] = [
+export const DETALHAMENTO_OPTIONS: ActionCardData[] = [
   {
     label: "Comerciante > Item",
     leftIcon: Users,
@@ -36,8 +28,7 @@ export const DETALHAMENTO_OPTIONS: DetOption[] = [
   },
   {
     label: "Visão Geral",
-    leftIcon: BarChart2,
-    rightIcon: null,
+    icon: BarChart2,
     description: "Painel completo com todos os dados da feira",
     accent: "#3d9428",
     href: "/feiras/detalhamento/visao-geral",

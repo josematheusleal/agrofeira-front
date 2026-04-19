@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ArrowRight } from "lucide-react";
 import { DecorativeCircle } from "@/components/ui/DecorativeCircle";
 
 export interface ActionCardData {
   label: string;
   sublabel?: string;
-  icon: React.ElementType;
+  icon?: React.ElementType;
+  leftIcon?: React.ElementType;
+  rightIcon?: React.ElementType | null;
   description: string;
   accent: string;
   href?: string;
@@ -19,41 +21,53 @@ interface ActionCardProps {
   disabled?: boolean;
   queryString?: string; // e.g., "?feiraId=123"
   delayClass?: string; // e.g., "[animation-delay:60ms]"
+  variant?: "default" | "detalhamento";
 }
 
 const stylesMap: Record<
   string,
-  { bg: string; iconBg: string; iconColor: string; arrowColor: string }
+  {
+    bg: string;
+    iconBg: string;
+    iconColor: string;
+    arrowColor: string;
+    iconBg2?: string;
+  }
 > = {
   "#003d04": {
     bg: "bg-[linear-gradient(135deg,#003d04_0%,#5bc48b_100%)]",
     iconBg: "bg-[#003d0412]",
     iconColor: "text-[#003d04]",
     arrowColor: "text-[#003d04]",
+    iconBg2: "bg-[#003d0409]",
   },
   "#1b6112": {
     bg: "bg-[linear-gradient(135deg,#1b6112_0%,#5bc48b_100%)]",
     iconBg: "bg-[#1b611212]",
     iconColor: "text-[#1b6112]",
     arrowColor: "text-[#1b6112]",
+    iconBg2: "bg-[#1b611209]",
   },
   "#2d7a1f": {
     bg: "bg-[linear-gradient(135deg,#2d7a1f_0%,#5bc48b_100%)]",
     iconBg: "bg-[#2d7a1f12]",
     iconColor: "text-[#2d7a1f]",
     arrowColor: "text-[#2d7a1f]",
+    iconBg2: "bg-[#2d7a1f09]",
   },
   "#3d9428": {
     bg: "bg-[linear-gradient(135deg,#3d9428_0%,#5bc48b_100%)]",
     iconBg: "bg-[#3d942812]",
     iconColor: "text-[#3d9428]",
     arrowColor: "text-[#3d9428]",
+    iconBg2: "bg-[#3d942809]",
   },
   "#5bc48b": {
     bg: "bg-[linear-gradient(135deg,#5bc48b_0%,#5bc48b_100%)]",
     iconBg: "bg-[#5bc48b12]",
     iconColor: "text-[#5bc48b]",
     arrowColor: "text-[#5bc48b]",
+    iconBg2: "bg-[#5bc48b09]",
   },
 };
 
@@ -62,6 +76,7 @@ export function ActionCard({
   disabled = false,
   queryString = "",
   delayClass = "",
+  variant = "default",
 }: Readonly<ActionCardProps>) {
   const [hovered, setHovered] = useState(false);
   const router = useRouter();
@@ -72,7 +87,8 @@ export function ActionCard({
     router.push(`${card.href}${queryString}`);
   }
 
-  const Icon = card.icon;
+  const PrimaryIcon = card.icon ?? card.leftIcon;
+  const SecondaryIcon = card.rightIcon;
   const mapped = stylesMap[card.accent] || stylesMap["#5bc48b"];
 
   let cardClasses = delayClass ? `${delayClass} ` : "";
@@ -108,27 +124,75 @@ export function ActionCard({
         className="-bottom-4 -right-4 transition-all duration-300"
       />
 
-      {/* Ícone */}
-      <div
-        className={`relative z-10 flex items-center justify-center w-11 h-11 rounded-xl mb-3 transition-all duration-300 ${
-          active ? "bg-white/20" : mapped.iconBg
-        }`}
-      >
-        <Icon
-          size={22}
-          className={`transition-colors duration-300 ${active ? "text-white" : mapped.iconColor}`}
-        />
-      </div>
+      {/* Ícone(s) */}
+      {variant === "detalhamento" ? (
+        <div className="relative z-10 flex items-center gap-2 mb-5">
+          {PrimaryIcon && (
+            <div
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300 ${
+                active ? "bg-white/20" : mapped.iconBg
+              }`}
+            >
+              <PrimaryIcon
+                size={20}
+                className={`transition-colors duration-300 ${active ? "text-white" : mapped.iconColor}`}
+              />
+            </div>
+          )}
+          {SecondaryIcon && (
+            <>
+              <ArrowRight
+                size={13}
+                className={`transition-colors duration-300 shrink-0 ${active ? "text-white/50" : "text-[#aacaad]"}`}
+              />
+              <div
+                className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300 ${
+                  active ? "bg-white/15" : (mapped.iconBg2 ?? mapped.iconBg)
+                }`}
+              >
+                <SecondaryIcon
+                  size={20}
+                  className={`transition-colors duration-300 ${active ? "text-white/85" : mapped.iconColor}`}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div
+          className={`relative z-10 flex items-center justify-center w-11 h-11 rounded-xl mb-3 transition-all duration-300 ${
+            active ? "bg-white/20" : mapped.iconBg
+          }`}
+        >
+          {PrimaryIcon && (
+            <PrimaryIcon
+              size={22}
+              className={`transition-colors duration-300 ${active ? "text-white" : mapped.iconColor}`}
+            />
+          )}
+        </div>
+      )}
 
       {/* Texto */}
       <div className="relative z-10 flex-1">
-        <p
-          className={`text-[10px] mb-0.5 font-medium tracking-widest uppercase transition-colors duration-300 ${
-            active ? "text-white/75" : "text-[#7aaa80]"
-          }`}
-        >
-          {card.label}
-        </p>
+        {variant === "default" && (
+          <p
+            className={`text-[10px] mb-0.5 font-medium tracking-widest uppercase transition-colors duration-300 ${
+              active ? "text-white/75" : "text-[#7aaa80]"
+            }`}
+          >
+            {card.label}
+          </p>
+        )}
+        {variant === "detalhamento" && !card.sublabel && (
+          <p
+            className={`transition-colors duration-300 mb-1 font-bold text-base leading-tight tracking-tight ${
+              active ? "text-white" : "text-[#1a3d1f]"
+            }`}
+          >
+            {card.label}
+          </p>
+        )}
         {card.sublabel && (
           <p
             className={`font-bold text-base leading-tight mb-1.5 transition-colors duration-300 ${
@@ -149,10 +213,16 @@ export function ActionCard({
 
       {/* Seta — só se tiver rota */}
       {card.href && (
-        <div className="relative z-10 mt-3 self-end">
+        <div
+          className={`relative z-10 self-end ${variant === "default" ? "mt-3" : "mt-4"}`}
+        >
           <div
             className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${
-              active ? "bg-white/20" : "bg-[rgba(0,61,4,0.1)]"
+              active
+                ? "bg-white/20"
+                : variant === "detalhamento"
+                  ? mapped.iconBg
+                  : "bg-[rgba(0,61,4,0.1)]"
             }`}
           >
             <ChevronRight

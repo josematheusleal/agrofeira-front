@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { FileText, Loader2 } from "lucide-react";
-import { DetalhamentoCard } from "@/features/feiras/components/DetalhamentoCard";
+import { ActionCard } from "@/components/ui/ActionCard";
 import { DETALHAMENTO_OPTIONS } from "@/features/feiras/constants/detalhamento-options";
 import { PageHeader } from "@/components/ui/PageHeader";
 
@@ -47,7 +47,12 @@ function DetalhamentoFeiraContent() {
       {/* Grid de cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
         {DETALHAMENTO_OPTIONS.map((opt) => (
-          <DetalhamentoCard key={opt.label} option={opt} feiraId={feiraId} />
+          <ActionCard
+            key={opt.label}
+            card={opt}
+            variant={opt.leftIcon ? "detalhamento" : "default"}
+            queryString={feiraId ? `?feiraId=${feiraId}` : ""}
+          />
         ))}
       </div>
     </main>

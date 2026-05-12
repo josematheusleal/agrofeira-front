@@ -6,6 +6,7 @@ import { swrFetcher } from "@/lib/swr-fetcher";
 import { clienteService } from "../api/clientes.service";
 import { ClienteDTO } from "../api/types";
 import { useRouter } from "next/navigation";
+import { mascararTelefone } from "@/utils/formatters";
 
 export function useCliente(clienteId?: string) {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function useCliente(clienteId?: string) {
   );
 
   const [savingChanges, setSavingChanges] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
     telefone: "",
@@ -33,27 +35,33 @@ export function useCliente(clienteId?: string) {
     bairro: "",
     cidade: "",
     estado: "",
+    zonaEntregaId: "",
   });
 
   // Sincroniza formData quando o cliente é carregado
   useEffect(() => {
-    if (cliente && !formData.nome && !formData.telefone) {
+    if (cliente && !initialized) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         nome: cliente.nome || "",
-        telefone: cliente.telefone || "",
+        telefone: mascararTelefone(cliente.telefone || ""),
         email: cliente.email || "",
         descricao: cliente.descricao || "",
-        cep: cliente.cep || "",
-        rua: cliente.rua || "",
-        numero: cliente.numero || "",
-        complemento: cliente.complemento || "",
-        bairro: cliente.bairro || "",
-        cidade: cliente.cidade || "",
-        estado: cliente.estado || "",
+        cep: cliente.endereco?.cep || "",
+        rua: cliente.endereco?.rua || "",
+        numero: cliente.endereco?.numero || "",
+        complemento: cliente.endereco?.complemento || "",
+        bairro: cliente.endereco?.bairro || "",
+        cidade: cliente.endereco?.cidade || "",
+        estado: cliente.endereco?.estado || "",
+        zonaEntregaId:
+          cliente.endereco?.zonaEntregaId ||
+          cliente.endereco?.zonaEntrega?.id ||
+          "",
       });
+      setInitialized(true);
     }
-  }, [cliente, formData.nome, formData.telefone]);
+  }, [cliente, initialized]);
 
   const handleFormChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -66,7 +74,27 @@ export function useCliente(clienteId?: string) {
     if (!clienteId) return;
     try {
       setSavingChanges(true);
-      await clienteService.update(clienteId, formData);
+      const cepLimpo = formData.cep ? formData.cep.replace(/\D/g, "") : null;
+      const telefoneLimpo = formData.telefone
+        ? formData.telefone.replace(/\D/g, "")
+        : null;
+
+      await clienteService.update(clienteId, {
+        nome: formData.nome,
+        telefone: telefoneLimpo,
+        email: formData.email || null,
+        descricao: formData.descricao || null,
+        endereco: {
+          rua: formData.rua || null,
+          numero: formData.numero || null,
+          complemento: formData.complemento || null,
+          bairro: formData.bairro || null,
+          cidade: formData.cidade || null,
+          estado: formData.estado || null,
+          cep: cepLimpo,
+          zonaEntregaId: formData.zonaEntregaId || null,
+        },
+      });
       await mutate();
       router.push("/clientes");
     } finally {
@@ -77,6 +105,7 @@ export function useCliente(clienteId?: string) {
   return {
     cliente,
     formData,
+    setFormData,
     loading: isLoading,
     error: swrError
       ? swrError instanceof Error

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { ClienteForm } from "../ClienteForm";
 import { clienteService } from "../../api/clientes.service";
 import { useRouter } from "next/navigation";
+import { useZonasEntrega } from "../../hooks/useZonasEntrega";
 
 // Mock do service
 vi.mock("../../api/clientes.service", () => ({
@@ -16,13 +17,26 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
+// Mock do useZonasEntrega
+vi.mock("../../hooks/useZonasEntrega", () => ({
+  useZonasEntrega: vi.fn(),
+}));
+
 describe("ClienteForm Component", () => {
   const mockPush = vi.fn();
   const mockBack = vi.fn();
+  const mockZonas = [
+    { id: "z1", nome: "Centro", taxa: 5.0 },
+    { id: "z2", nome: "Boa Vista", taxa: 7.0 },
+  ];
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as Mock).mockReturnValue({ push: mockPush, back: mockBack });
+    (useZonasEntrega as Mock).mockReturnValue({
+      zonas: mockZonas,
+      isLoading: false,
+    });
   });
 
   it("deve renderizar os campos corretamente", () => {
@@ -31,9 +45,10 @@ describe("ClienteForm Component", () => {
     expect(screen.getByLabelText(/Nome/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Telefone/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Zona de Entrega/i)).toBeInTheDocument();
   });
 
-  it("deve validar que o nome é obrigatório", async () => {
+  it("deve validar que o nome e zona são obrigatórios", async () => {
     const { container } = render(<ClienteForm />);
     const form = container.querySelector("form");
     if (!form) throw new Error("Form not found");
@@ -42,6 +57,17 @@ describe("ClienteForm Component", () => {
 
     await waitFor(() => {
       expect(screen.getByText("O nome é obrigatório!")).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nome/i), {
+      target: { value: "Teste" },
+    });
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("A zona de entrega é obrigatória!"),
+      ).toBeInTheDocument();
     });
 
     expect(clienteService.create).not.toHaveBeenCalled();
@@ -57,6 +83,10 @@ describe("ClienteForm Component", () => {
       target: { value: "Cliente de Teste" },
     });
 
+    fireEvent.change(screen.getByLabelText(/Zona de Entrega/i), {
+      target: { value: "z1" },
+    });
+
     const submitButton = screen.getByText("Confirmar");
     fireEvent.click(submitButton);
 
@@ -64,16 +94,12 @@ describe("ClienteForm Component", () => {
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           nome: "Cliente de Teste",
-          telefone: null,
-          email: null,
-          senha: expect.any(String),
+          endereco: expect.objectContaining({
+            zonaEntregaId: "z1",
+          }),
         }),
       );
     });
-
-    const calls = mockCreate.mock.calls;
-    const submittedData = calls[0][0];
-    expect(submittedData.senha.length).toBeGreaterThan(10);
   });
 
   it("deve enviar todos os campos preenchidos corretamente", async () => {
@@ -109,6 +135,9 @@ describe("ClienteForm Component", () => {
     fireEvent.change(screen.getByLabelText("Estado"), {
       target: { value: "PE" },
     });
+    fireEvent.change(screen.getByLabelText(/Zona de Entrega/i), {
+      target: { value: "z2" },
+    });
 
     const submitButton = screen.getByText("Confirmar");
     fireEvent.click(submitButton);
@@ -117,18 +146,40 @@ describe("ClienteForm Component", () => {
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           nome: "Maria Silva",
-          telefone: "87988887777",
-          email: "maria@email.com",
-          cep: "55290-000",
-          rua: "Rua Teste",
-          numero: "123",
-          bairro: "Centro",
-          cidade: "Garanhuns",
-          estado: "PE",
-          senha: expect.any(String),
+          endereco: expect.objectContaining({
+            cep: "55290000",
+            zonaEntregaId: "z2",
+          }),
         }),
       );
     });
+  });
+
+  it("deve validar que a cidade deve ser Garanhuns", async () => {
+    render(<ClienteForm />);
+
+    fireEvent.change(screen.getByLabelText(/Nome/i), {
+      target: { value: "Maria Silva" },
+    });
+    fireEvent.change(screen.getByLabelText(/Zona de Entrega/i), {
+      target: { value: "z1" },
+    });
+    fireEvent.change(screen.getByLabelText(/Cidade/i), {
+      target: { value: "Recife" },
+    });
+
+    const submitButton = screen.getByText("Confirmar");
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Apenas clientes de Garanhuns podem ser cadastrados no sistema.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    expect(clienteService.create).not.toHaveBeenCalled();
   });
 
   it("deve navegar para dashboard ao clicar em cancelar", () => {
@@ -138,5 +189,37 @@ describe("ClienteForm Component", () => {
     fireEvent.click(cancelButton);
 
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("deve aplicar máscara de telefone e enviar apenas números ao backend", async () => {
+    (clienteService.create as Mock).mockResolvedValue({});
+    render(<ClienteForm />);
+
+    const phoneInput = screen.getByLabelText(/Telefone/i);
+
+    // Tenta digitar letras e números
+    fireEvent.change(phoneInput, { target: { value: "87abc988887777" } });
+
+    // Verifica se a máscara foi aplicada e as letras removidas
+    expect(phoneInput).toHaveValue("(87) 98888-7777");
+
+    fireEvent.change(screen.getByLabelText(/Nome/i), {
+      target: { value: "Teste Máscara" },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Zona de Entrega/i), {
+      target: { value: "z1" },
+    });
+
+    const submitButton = screen.getByText("Confirmar");
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(clienteService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          telefone: "87988887777",
+        }),
+      );
+    });
   });
 });

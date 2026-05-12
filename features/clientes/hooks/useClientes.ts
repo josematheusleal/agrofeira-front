@@ -10,7 +10,7 @@ import { ClienteDTO } from "../api/types";
 export function useClientes(params: PaginatedQueryParams = {}) {
   const { items: clientes, ...rest } = usePaginatedQuery<ClienteDTO>(
     clienteService.endpoint,
-    params,
+    { sort: "nome,ASC", ...params },
   );
 
   return {

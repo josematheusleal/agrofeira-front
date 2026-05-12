@@ -10,7 +10,7 @@ import { ItemDTO } from "../api/types";
 export function useItens(params: PaginatedQueryParams = {}) {
   const { items: itens, ...rest } = usePaginatedQuery<ItemDTO>(
     itemService.endpoint,
-    params,
+    { sort: "nome,ASC", ...params },
   );
 
   return {

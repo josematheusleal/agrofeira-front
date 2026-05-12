@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { swrFetcher } from "@/lib/swr-fetcher";
 import { comercianteService } from "../api/comerciantes.service";
 import { ComercianteDTO, CategoriaDTO } from "../api/types";
+import { mascararTelefone } from "@/utils/formatters";
 
 export function useComerciante(comercianteId: string) {
   // Queries individuais via SWR
@@ -47,7 +48,7 @@ export function useComerciante(comercianteId: string) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         nome: comerciante.nome,
-        telefone: comerciante.telefone || "",
+        telefone: mascararTelefone(comerciante.telefone || ""),
         email: comerciante.email || "",
         descricao: comerciante.descricao || "",
       });
@@ -55,17 +56,25 @@ export function useComerciante(comercianteId: string) {
   }, [comerciante, formData.nome, formData.telefone]);
 
   const handleFormChange = (field: string, value: string) => {
+    const finalValue = field === "telefone" ? mascararTelefone(value) : value;
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: finalValue,
     }));
   };
 
   const saveChanges = async (newActiveCategories?: string[]) => {
     try {
       setSavingChanges(true);
+      const telefoneLimpo = formData.telefone
+        ? formData.telefone.replace(/\D/g, "")
+        : null;
+
       await Promise.all([
-        comercianteService.update(comercianteId, formData),
+        comercianteService.update(comercianteId, {
+          ...formData,
+          telefone: telefoneLimpo,
+        }),
         comercianteService.atualizarCategoriasComerciante(
           comercianteId,
           newActiveCategories || activeCategories || [],

@@ -3,10 +3,16 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { ClienteEdit } from "../ClienteEdit";
 import { useCliente } from "../../hooks/useCliente";
 import { useRouter } from "next/navigation";
+import { useZonasEntrega } from "../../hooks/useZonasEntrega";
 
 // Mock do hook useCliente
 vi.mock("../../hooks/useCliente", () => ({
   useCliente: vi.fn(),
+}));
+
+// Mock do useZonasEntrega
+vi.mock("../../hooks/useZonasEntrega", () => ({
+  useZonasEntrega: vi.fn(),
 }));
 
 // Mock do next/navigation
@@ -32,8 +38,9 @@ describe("ClienteEdit Component", () => {
       numero: "",
       complemento: "",
       bairro: "",
-      cidade: "",
-      estado: "",
+      cidade: "Garanhuns",
+      estado: "PE",
+      zonaEntregaId: "z1",
     },
     loading: false,
     error: null,
@@ -45,6 +52,10 @@ describe("ClienteEdit Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as Mock).mockReturnValue({ back: mockBack, push: vi.fn() });
+    (useZonasEntrega as Mock).mockReturnValue({
+      zonas: [{ id: "z1", nome: "Centro", taxa: 5.0 }],
+      isLoading: false,
+    });
   });
 
   it("deve exibir estado de carregamento inicial", () => {
@@ -103,6 +114,31 @@ describe("ClienteEdit Component", () => {
       "email",
       "novo@email.com",
     );
+  });
+
+  it("deve carregar a zona de entrega salva do cliente", () => {
+    const mockCliente = {
+      id: mockId,
+      nome: "João Silva",
+      endereco: { zonaEntregaId: "z1" },
+    };
+    (useCliente as Mock).mockReturnValue({
+      ...defaultHookReturn,
+      cliente: mockCliente,
+      formData: {
+        ...defaultHookReturn.formData,
+        nome: "João Silva",
+        zonaEntregaId: "z1",
+      },
+    });
+
+    render(<ClienteEdit clienteId={mockId} />);
+
+    const zonaSelect = screen.getByLabelText(/Zona de Entrega/i);
+    expect(zonaSelect).toHaveValue("z1");
+    expect(
+      screen.getByText(/Centro \(R\$ 5,00\) — \(Valor Atual\)/i),
+    ).toBeInTheDocument();
   });
 
   it("deve chamar handleFormChange quando um campo é editado", () => {

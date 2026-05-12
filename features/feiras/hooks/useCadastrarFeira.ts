@@ -41,10 +41,13 @@ export function useCadastrarFeira() {
   const [itLeftSel, setItLeftSel] = useState<string[]>([]);
   const [itRightSel, setItRightSel] = useState<string[]>([]);
 
-  // Fetch com SWR para cache de 15 minutos e size=1000
+  const [comsSize, setComsSize] = useState(1000);
+  const [itensSize, setItensSize] = useState(1000);
+
+  // Fetch com SWR para cache de 15 minutos e tamanho dinâmico
   const { data: comsData, error: comsError } = useSWR(
-    isAuthenticated ? "/api/v1/comerciantes?size=1000" : null,
-    () => comercianteService.getAll({ size: 1000 }),
+    isAuthenticated ? `/api/v1/comerciantes?size=${comsSize}` : null,
+    () => comercianteService.getAll({ size: comsSize }),
     {
       dedupingInterval: 15 * 60 * 1000,
       revalidateOnFocus: false,
@@ -52,24 +55,41 @@ export function useCadastrarFeira() {
   );
 
   const { data: itensData, error: itensError } = useSWR(
-    isAuthenticated ? "/api/v1/itens?size=1000" : null,
-    () => itemService.getAll({ size: 1000 }),
+    isAuthenticated ? `/api/v1/itens?size=${itensSize}` : null,
+    () => itemService.getAll({ size: itensSize }),
     {
       dedupingInterval: 15 * 60 * 1000,
       revalidateOnFocus: false,
     },
   );
 
+  // Verifica se precisa de retry (a base excedeu o tamanho inicial de 1000)
   useEffect(() => {
-    if (comsData && itensData && loadingData) {
+    if (comsData && comsData.totalElements > comsSize) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setComsSize(comsData.totalElements);
+    }
+  }, [comsData, comsSize]);
+
+  useEffect(() => {
+    if (itensData && itensData.totalElements > itensSize) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setItensSize(itensData.totalElements);
+    }
+  }, [itensData, itensSize]);
+
+  useEffect(() => {
+    // Só prossegue se os dados já vieram e se a quantidade retornada cobre o total de elementos do banco
+    const comsProntos = comsData && comsData.totalElements <= comsSize;
+    const itensProntos = itensData && itensData.totalElements <= itensSize;
+
+    if (comsProntos && itensProntos && loadingData) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCmRight(comsData.content);
-
       setItRight(itensData.content);
-
       setLoadingData(false);
     }
-  }, [comsData, itensData, loadingData]);
+  }, [comsData, comsSize, itensData, itensSize, loadingData]);
 
   useEffect(() => {
     if (comsError || itensError) {
@@ -79,7 +99,6 @@ export function useCadastrarFeira() {
       );
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setErro("Erro ao carregar dados do servidor");
-
       setLoadingData(false);
     }
   }, [comsError, itensError]);

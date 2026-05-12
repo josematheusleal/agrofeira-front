@@ -1,8 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, CheckCircle2, Search } from "lucide-react";
 import { useCliente } from "../hooks/useCliente";
+import { mascararTelefone, formatarMoeda } from "@/utils/formatters";
+import { BuscaCepModal, type ViaCepAddress } from "./BuscaCepModal";
+import { useZonasEntrega } from "../hooks/useZonasEntrega";
 
 interface ClienteEditProps {
   clienteId: string;
@@ -10,9 +14,12 @@ interface ClienteEditProps {
 
 export function ClienteEdit({ clienteId }: ClienteEditProps) {
   const router = useRouter();
+  const [isCepModalOpen, setIsCepModalOpen] = useState(false);
+  const { zonas, isLoading: isLoadingZonas } = useZonasEntrega();
   const {
     cliente,
     formData,
+    setFormData,
     loading,
     error,
     savingChanges,
@@ -21,11 +28,71 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
   } = useCliente(clienteId);
 
   const handleSaveChanges = async () => {
+    // Validação obrigatória da cidade
+    if (
+      formData.cidade &&
+      formData.cidade.trim().toLowerCase() !== "garanhuns"
+    ) {
+      alert("Apenas clientes de Garanhuns podem ser cadastrados no sistema.");
+      return;
+    }
+
+    if (!formData.zonaEntregaId) {
+      alert("A zona de entrega é obrigatória!");
+      return;
+    }
+
     try {
       await saveChanges();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao salvar alterações");
     }
+  };
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 5) {
+      value = value.replace(/^(\d{5})(\d)/, "$1-$2");
+    }
+    handleFormChange("cep", value.slice(0, 9));
+  };
+
+  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const cep = e.target.value.replace(/\D/g, "");
+    if (cep.length === 8) {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+
+        if (!data.erro && data.localidade === "Garanhuns") {
+          setFormData((prev) => ({
+            ...prev,
+            rua: data.logradouro || "",
+            bairro: data.bairro || "",
+            cidade: data.localidade || "",
+            state: data.uf || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+      }
+    }
+  };
+
+  const handleCepSelect = (endereco: ViaCepAddress) => {
+    setFormData((prev) => ({
+      ...prev,
+      cep: endereco.cep,
+      rua: endereco.logradouro || "",
+      bairro: endereco.bairro || "",
+      cidade: endereco.localidade || "",
+      state: endereco.uf || "",
+    }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = mascararTelefone(e.target.value);
+    handleFormChange("telefone", value);
   };
 
   if (loading) {
@@ -124,7 +191,7 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
                 id="telefone"
                 type="tel"
                 value={formData.telefone}
-                onChange={(e) => handleFormChange("telefone", e.target.value)}
+                onChange={handlePhoneChange}
                 placeholder="(00) 00000-0000"
                 className="w-full px-4 py-3.5 bg-[#fcfdfc] border border-[#c2e5cc] rounded-2xl text-base font-medium text-[#1a3d1f] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#5bc48b]"
               />
@@ -197,24 +264,52 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
           <div className="space-y-4">
             {/* CEP */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="cep"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 CEP
               </label>
-              <input
-                type="text"
-                value={formData.cep}
-                onChange={(e) => handleFormChange("cep", e.target.value)}
-                placeholder="00000-000"
-                className="w-full px-4 py-3.5 bg-[#fcfdfc] border border-[#c2e5cc] rounded-2xl text-base font-medium text-[#1a3d1f] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#5bc48b]"
-              />
+              <div className="flex flex-col gap-1">
+                <div className="relative">
+                  <input
+                    id="cep"
+                    type="text"
+                    value={formData.cep}
+                    onChange={handleCepChange}
+                    onBlur={handleCepBlur}
+                    placeholder="00000-000"
+                    className="w-full px-4 py-3.5 pr-12 bg-[#fcfdfc] border border-[#c2e5cc] rounded-2xl text-base font-medium text-[#1a3d1f] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#5bc48b]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsCepModalOpen(true)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full text-[#5bc48b] transition-colors"
+                    title="Não sei meu CEP"
+                  >
+                    <Search size={18} />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCepModalOpen(true)}
+                  className="text-[10px] text-[#5bc48b] hover:underline font-bold text-left px-1"
+                >
+                  NÃO SEI MEU CEP
+                </button>
+              </div>
             </div>
 
             {/* Rua */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="rua"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 Rua / Logradouro
               </label>
               <input
+                id="rua"
                 type="text"
                 value={formData.rua}
                 onChange={(e) => handleFormChange("rua", e.target.value)}
@@ -225,10 +320,14 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
 
             {/* Número */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="numero"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 Número
               </label>
               <input
+                id="numero"
                 type="text"
                 value={formData.numero}
                 onChange={(e) => handleFormChange("numero", e.target.value)}
@@ -239,10 +338,14 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
 
             {/* Complemento */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="complemento"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 Complemento
               </label>
               <input
+                id="complemento"
                 type="text"
                 value={formData.complemento}
                 onChange={(e) =>
@@ -255,10 +358,14 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
 
             {/* Bairro */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="bairro"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 Bairro
               </label>
               <input
+                id="bairro"
                 type="text"
                 value={formData.bairro}
                 onChange={(e) => handleFormChange("bairro", e.target.value)}
@@ -269,24 +376,32 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
 
             {/* Cidade */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="cidade"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 Cidade
               </label>
               <input
+                id="cidade"
                 type="text"
                 value={formData.cidade}
                 onChange={(e) => handleFormChange("cidade", e.target.value)}
-                placeholder="São Paulo"
+                placeholder="Garanhuns"
                 className="w-full px-4 py-3.5 bg-[#fcfdfc] border border-[#c2e5cc] rounded-2xl text-base font-medium text-[#1a3d1f] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#5bc48b]"
               />
             </div>
 
             {/* Estado */}
             <div>
-              <label className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2">
+              <label
+                htmlFor="estado"
+                className="block text-xs font-bold text-[#8aaa8d] uppercase tracking-wider mb-2"
+              >
                 Estado
               </label>
               <select
+                id="estado"
                 value={formData.estado}
                 onChange={(e) => handleFormChange("estado", e.target.value)}
                 className="w-full px-4 py-3.5 bg-[#fcfdfc] border border-[#c2e5cc] rounded-2xl text-base font-medium text-[#1a3d1f] focus:outline-none focus:ring-2 focus:ring-[#5bc48b]"
@@ -321,6 +436,39 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
                 <option value="TO">TO</option>
               </select>
             </div>
+
+            {/* Zona de Entrega */}
+            <div className="pt-4 border-t border-dashed border-[#eef5ee]">
+              <label
+                htmlFor="zonaEntregaId"
+                className="block text-xs font-bold text-[#5bc48b] uppercase tracking-wider mb-2"
+              >
+                Zona de Entrega *
+              </label>
+              <select
+                id="zonaEntregaId"
+                value={formData.zonaEntregaId}
+                onChange={(e) =>
+                  handleFormChange("zonaEntregaId", e.target.value)
+                }
+                className="w-full px-4 py-3.5 bg-[#fcfdfc] border border-[#c2e5cc] rounded-2xl text-base font-medium text-[#1a3d1f] focus:outline-none focus:ring-2 focus:ring-[#5bc48b]"
+                disabled={isLoadingZonas}
+              >
+                <option value="">Selecione uma zona...</option>
+                {zonas.map((z) => {
+                  const isCurrent =
+                    z.id === cliente.endereco?.zonaEntregaId ||
+                    z.id === cliente.endereco?.zonaEntrega?.id;
+
+                  return (
+                    <option key={z.id} value={z.id}>
+                      {z.nome} ({formatarMoeda(z.taxa)})
+                      {isCurrent ? " — (Valor Atual)" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -343,6 +491,12 @@ export function ClienteEdit({ clienteId }: ClienteEditProps) {
           </button>
         </div>
       </div>
+
+      <BuscaCepModal
+        isOpen={isCepModalOpen}
+        onClose={() => setIsCepModalOpen(false)}
+        onSelect={handleCepSelect}
+      />
     </div>
   );
 }

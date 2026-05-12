@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { FormSection } from "@/components/ui/FormSection";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { comercianteService } from "@/features/comerciantes/api/comerciantes.service";
+import { mascararTelefone } from "@/utils/formatters";
 
 export function ComercianteForm() {
   const {
@@ -35,9 +36,11 @@ export function ComercianteForm() {
         Math.random().toString(36).slice(-10) +
         Math.random().toString(36).slice(-10);
 
+      const telefoneLimpo = (data.phone as string)?.replace(/\D/g, "");
+
       await comercianteService.create({
         nome: data.name,
-        telefone: data.phone || null,
+        telefone: telefoneLimpo || null,
         email: data.email || null,
         descricao: data.description || null,
         senha: generatedPassword,
@@ -45,6 +48,13 @@ export function ComercianteForm() {
     },
     errorMessageFallback: "Erro ao cadastrar comerciante",
   });
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = mascararTelefone(e.target.value);
+    handleInputChange({
+      target: { name: "phone", value },
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
 
   return (
     <div className="rounded-2xl p-5 md:p-6 bg-white shadow-[0_2px_16px_rgba(0,61,4,0.07),0_0_0_1px_rgba(0,61,4,0.06)]">
@@ -76,7 +86,7 @@ export function ComercianteForm() {
               name="phone"
               type="tel"
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={handlePhoneChange}
               placeholder="(87) 98888-7777"
             />
             <div className="md:col-span-2">

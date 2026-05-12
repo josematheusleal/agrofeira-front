@@ -119,4 +119,32 @@ describe("ComercianteForm Component", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
+
+  it("deve aplicar máscara de telefone e enviar apenas números ao backend", async () => {
+    (comercianteService.create as Mock).mockResolvedValue({});
+    render(<ComercianteForm />);
+
+    const phoneInput = screen.getByLabelText(/Telefone/i);
+
+    // Tenta digitar letras e números
+    fireEvent.change(phoneInput, { target: { value: "87abc988887777" } });
+
+    // Verifica se a máscara foi aplicada e as letras removidas
+    expect(phoneInput).toHaveValue("(87) 98888-7777");
+
+    fireEvent.change(screen.getByLabelText(/Nome/i), {
+      target: { value: "Teste Máscara" },
+    });
+
+    const submitButton = screen.getByText("Confirmar");
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(comercianteService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          telefone: "87988887777",
+        }),
+      );
+    });
+  });
 });

@@ -3,10 +3,16 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { ClienteEdit } from "../ClienteEdit";
 import { useCliente } from "../../hooks/useCliente";
 import { useRouter } from "next/navigation";
+import { useZonasEntrega } from "../../hooks/useZonasEntrega";
 
 // Mock do hook useCliente
 vi.mock("../../hooks/useCliente", () => ({
   useCliente: vi.fn(),
+}));
+
+// Mock do useZonasEntrega
+vi.mock("../../hooks/useZonasEntrega", () => ({
+  useZonasEntrega: vi.fn(),
 }));
 
 // Mock do next/navigation
@@ -25,14 +31,16 @@ describe("ClienteEdit Component", () => {
     formData: {
       nome: "",
       telefone: "",
+      email: "",
       descricao: "",
       cep: "",
       rua: "",
       numero: "",
       complemento: "",
       bairro: "",
-      cidade: "",
-      estado: "",
+      cidade: "Garanhuns",
+      estado: "PE",
+      zonaEntregaId: "z1",
     },
     loading: false,
     error: null,
@@ -44,6 +52,10 @@ describe("ClienteEdit Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as Mock).mockReturnValue({ back: mockBack, push: vi.fn() });
+    (useZonasEntrega as Mock).mockReturnValue({
+      zonas: [{ id: "z1", nome: "Centro", taxa: 5.0 }],
+      isLoading: false,
+    });
   });
 
   it("deve exibir estado de carregamento inicial", () => {
@@ -79,6 +91,54 @@ describe("ClienteEdit Component", () => {
     expect(screen.getByText("Gerenciar Cliente")).toBeInTheDocument();
     const nomeInput = screen.getByDisplayValue("João Silva");
     expect(nomeInput).toBeInTheDocument();
+  });
+
+  it("deve renderizar o campo email e permitir edição", () => {
+    (useCliente as Mock).mockReturnValue({
+      ...defaultHookReturn,
+      cliente: { id: mockId, nome: "João", email: "joao@email.com" },
+      formData: {
+        ...defaultHookReturn.formData,
+        nome: "João",
+        email: "joao@email.com",
+      },
+    });
+
+    render(<ClienteEdit clienteId={mockId} />);
+
+    const emailInput = screen.getByLabelText(/Email/i);
+    expect(emailInput).toHaveValue("joao@email.com");
+
+    fireEvent.change(emailInput, { target: { value: "novo@email.com" } });
+    expect(mockHandleFormChange).toHaveBeenCalledWith(
+      "email",
+      "novo@email.com",
+    );
+  });
+
+  it("deve carregar a zona de entrega salva do cliente", () => {
+    const mockCliente = {
+      id: mockId,
+      nome: "João Silva",
+      endereco: { zonaEntregaId: "z1" },
+    };
+    (useCliente as Mock).mockReturnValue({
+      ...defaultHookReturn,
+      cliente: mockCliente,
+      formData: {
+        ...defaultHookReturn.formData,
+        nome: "João Silva",
+        zonaEntregaId: "z1",
+      },
+    });
+
+    render(<ClienteEdit clienteId={mockId} />);
+
+    const zonaSelect = screen.getByLabelText(/Zona de Entrega/i);
+    expect(zonaSelect).toHaveValue("z1");
+    expect(
+      screen.getByText(/Centro \(R\$ 5,00\) — \(Valor Atual\)/i),
+    ).toBeInTheDocument();
   });
 
   it("deve chamar handleFormChange quando um campo é editado", () => {

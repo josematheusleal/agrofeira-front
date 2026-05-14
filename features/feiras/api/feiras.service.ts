@@ -8,7 +8,9 @@ import {
   ItemAgrupado,
 } from "./types";
 
-const baseService = createBaseService<FeiraDTO, CreateFeiraDTO>("/api/feiras");
+const baseService = createBaseService<FeiraDTO, CreateFeiraDTO>(
+  "/api/v1/feiras",
+);
 
 export const feiraService = {
   ...baseService,
@@ -17,14 +19,14 @@ export const feiraService = {
    * Busca resumo detalhado da feira
    */
   getResumo: (id: string) => {
-    return apiClient<ResumoFeiraDTO>(`/api/feiras/${id}/resumo`);
+    return apiClient<ResumoFeiraDTO>(`/api/v1/feiras/${id}/resumo`);
   },
 
   /**
    * Lista estoques vinculados a uma feira específica
    */
   getEstoques: (id: string) => {
-    return apiClient<EstoqueBancaDTO[]>(`/api/feiras/${id}/estoques`);
+    return apiClient<EstoqueBancaDTO[]>(`/api/v1/feiras/${id}/estoques`);
   },
 
   /**

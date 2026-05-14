@@ -180,16 +180,15 @@ export function useCadastrarFeira() {
     setErro(null);
     setSubmitting(true);
     try {
+      // Criar a feira com apenas dataHora e status
+      const dataIso = new Date(dataFeira).toISOString();
       await feiraService.create({
-        feira: {
-          dataHora: new Date(dataFeira).toISOString().replace("Z", ""),
-          status: "AGENDADA",
-        },
-        comercianteIds: cmRight.map((c) => c.id),
-        itemIds: itRight.map((i) => i.id),
+        dataHora: dataIso,
+        status: "RASCUNHO",
       });
       router.push("/feiras");
-    } catch {
+    } catch (error) {
+      console.error("Erro ao cadastrar feira:", error);
       setErro("Erro ao cadastrar feira. Tente novamente.");
     } finally {
       setSubmitting(false);
